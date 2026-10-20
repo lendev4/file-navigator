@@ -133,6 +133,27 @@ export default {
     }
   },
 
+  'zoomed images stay centred while smaller than the window': async (ctx) => {
+    const f = tempFolder({ 'photo2.png': '@photo2.png', 'drawing1.svg': '@drawing1.svg' });
+    const middle = (page) => page.$eval('img', (i) => { const r = i.getBoundingClientRect(); return [Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2)]; });
+    try {
+      for (const [fileBar, top] of [['never', 0], ['always', 44]]) {
+        await setSettings(ctx, { fileBar });
+        const page = await newPage(ctx, { width: 900, height: 600 });
+        for (const name of ['photo2.png', 'drawing1.svg']) {
+          await page.goto(f.url + name);
+          await waitForShown(page, name, f.url);
+          await page.keyboard.press('-');
+          await sleep(100);
+          assert.deepEqual(await middle(page), [450, top + (600 - top) / 2], `${name}, bar ${fileBar}`);
+        }
+        await page.close();
+      }
+    } finally {
+      f.remove();
+    }
+  },
+
   'zoom with + - 0 1, keeping the image scrollable': async (ctx) => {
     await setSettings(ctx, {});
     const f = photos();
@@ -146,6 +167,9 @@ export default {
       await page.keyboard.press('+');
       assert.equal(await imgWidth(page), 600);
       assert.ok(await page.evaluate(() => document.scrollingElement.scrollWidth > innerWidth), 'scrolls sideways');
+      // Nothing is cut off: scrolled to the start, the image's corner is in view.
+      await page.evaluate(() => scrollTo(0, 0));
+      assert.deepEqual(await page.$eval('img', (i) => { const r = i.getBoundingClientRect(); return [Math.round(r.left), Math.round(r.top)]; }), [0, 0]);
       await page.keyboard.press('-');
       assert.equal(await imgWidth(page), 480);
       await page.keyboard.press('0');

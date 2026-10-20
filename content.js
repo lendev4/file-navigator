@@ -257,8 +257,11 @@
       /* Chrome's video page only ever shrinks a video; in fullscreen it fills the
          screen, like the player's own fullscreen. */
       html.fn-fullscreen video { position: fixed !important; inset: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; margin: 0 !important; object-fit: contain; }
-      /* Zoomed with + / - / 1: a fixed width, scrolled in the page. */
-      img.fn-zoomed { width: var(--fn-zoom-width) !important; height: auto !important; max-width: none !important; max-height: none !important; position: static !important; margin: 0 auto !important; }`;
+      /* Zoomed with + / - / 1: a fixed width, scrolled in the page. Auto margins
+         in a flex body centre it while it's smaller than the window, and,
+         unlike centring, still let it scroll from its edge when it's larger. */
+      body:has(> img.fn-zoomed) { display: flex !important; }
+      img.fn-zoomed { flex: none; width: var(--fn-zoom-width) !important; height: auto !important; max-width: none !important; max-height: none !important; position: static !important; margin: auto !important; }`;
     (document.head || document.documentElement).appendChild(pageStyle);
 
     // Image size next to the name, once it's known.
