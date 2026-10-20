@@ -3,6 +3,7 @@
   "name": "File Navigator",
   "version": "1.0.0",
   "minimum_chrome_version": "116",
+  "homepage_url": "https://github.com/lendev4/file-navigator",
   "description": "Browse local files like in a file explorer: folder view with thumbnails, arrow keys to step through files, Markdown, CSV and music.",
   "permissions": ["offscreen", "storage"],
   "host_permissions": ["file:///*"],

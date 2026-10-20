@@ -13,6 +13,10 @@ this folder (regenerate them with `mise exec -- npm run store` in `tests/`).
 
 **Category:** Tools (Productivity)
 
+**Homepage URL:** https://github.com/lendev4/file-navigator
+
+**Support URL:** https://github.com/lendev4/file-navigator/issues
+
 **Language:** English
 
 **Description:**
@@ -79,7 +83,7 @@ After installing, open the extension's details page (chrome://extensions) and tu
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose
 - I do not use or transfer user data to determine creditworthiness or for lending purposes
 
-**Privacy policy URL:** not required when no user data is collected; if you want one, publish `PRIVACY.md` (for example on GitHub) and use its URL.
+**Privacy policy URL:** https://github.com/lendev4/file-navigator/blob/main/PRIVACY.md
 
 ## Distribution
 
