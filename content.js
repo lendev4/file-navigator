@@ -87,16 +87,8 @@
       navigator.clipboard.writeText(path).then(() => flash(`Copied ${path}`), () => flash("Couldn't copy the path"));
     }
 
-    // The clipboard takes PNG images only; the background converts the file.
-    // Handing the clipboard a promise keeps the key press's permission meanwhile.
     function copyImage() {
-      const png = chrome.runtime.sendMessage({ type: 'image-png', url: fileUrl }).then(async (res) => {
-        if (!res?.png) throw new Error(res?.error || 'No image');
-        return (await fetch(res.png)).blob();
-      });
-      navigator.clipboard
-        .write([new ClipboardItem({ 'image/png': png })])
-        .then(() => flash('Copied the image'), () => flash("Couldn't copy the image"));
+      copyImageAndPath(fileUrl).then(() => flash('Copied the image and its path'), () => flash("Couldn't copy the image"));
     }
 
     // Back to the folder, with this file selected in the folder view.
@@ -143,7 +135,8 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.defaultPrevented || isEditable(document.activeElement)) return;
-      // Ctrl+C with nothing selected copies the image, or the file's path.
+      // Ctrl+C with nothing selected copies the image (and its path), or the
+      // file's path.
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c' && !String(getSelection())) {
         e.preventDefault();
         return isImage ? copyImage() : copyPath();

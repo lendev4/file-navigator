@@ -74,6 +74,19 @@ function filePath(fileUrl) {
   return /^\/[a-z]:\//i.test(path) ? path.slice(1).replace(/\//g, '\\') : path;
 }
 
+// Copies an image as PNG together with its path as text, so apps that take
+// images paste the image and text fields the path. The background converts
+// the file (the clipboard only takes PNG); handing the clipboard a promise
+// keeps the key press's permission meanwhile.
+function copyImageAndPath(fileUrl) {
+  const png = chrome.runtime.sendMessage({ type: 'image-png', url: fileUrl }).then(async (res) => {
+    if (!res?.png) throw new Error(res?.error || 'No image');
+    return (await fetch(res.png)).blob();
+  });
+  const path = new Blob([filePath(fileUrl)], { type: 'text/plain' });
+  return navigator.clipboard.write([new ClipboardItem({ 'image/png': png, 'text/plain': path })]);
+}
+
 // Images in a music folder used as its cover.
 const COVER_NAMES = /^(cover|folder|front|album|albumart)\.(jpe?g|png|webp)$/i;
 

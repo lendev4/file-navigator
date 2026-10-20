@@ -315,10 +315,15 @@
 
   // Browsers can't put files on the clipboard, so Ctrl+C copies the path, to
   // paste into a terminal, a file dialog or a file manager's address bar.
-  function copyPath(entry) {
+  // Images are copied too, along with the path.
+  function copy(entry) {
     if (!entry) return;
     const path = filePath(entry.href);
-    navigator.clipboard.writeText(path).then(() => notice(`Copied ${path}`), () => notice("Couldn't copy the path"));
+    if (entry.kind === 'image') {
+      copyImageAndPath(entry.href).then(() => notice(`Copied the image and ${path}`), () => notice("Couldn't copy the image"));
+    } else {
+      navigator.clipboard.writeText(path).then(() => notice(`Copied ${path}`), () => notice("Couldn't copy the path"));
+    }
   }
 
   // Files open through the background, which remembers they came from here
@@ -379,7 +384,7 @@
     const selectedText = inFilter ? ui.filter.selectionStart !== ui.filter.selectionEnd : String(getSelection());
     if (e.key.toLowerCase() === 'c' && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && !selectedText) {
       e.preventDefault();
-      return copyPath(visible[selected]);
+      return copy(visible[selected]);
     }
     // Leave browser shortcuts such as Alt+Left (Back) alone.
     if (e.altKey || e.ctrlKey || e.metaKey) return;

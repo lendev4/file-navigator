@@ -19,6 +19,19 @@ async function ctrlC(page) {
 }
 
 const clipboardText = (page) => page.evaluate(() => navigator.clipboard.readText());
+
+// The image's size and the path text on the clipboard, once the image is there.
+const clipboardImage = (page) =>
+  until(
+    () => page.evaluate(async () => {
+      const [item] = await navigator.clipboard.read();
+      if (!item.types.includes('image/png')) return null;
+      const bitmap = await createImageBitmap(await item.getType('image/png'));
+      const text = item.types.includes('text/plain') ? await (await item.getType('text/plain')).text() : null;
+      return { size: `${bitmap.width}x${bitmap.height}`, text };
+    }),
+    { message: 'an image on the clipboard' }
+  );
 const testFile = (name) => path.join(ROOT, 'test-files', name);
 
 export default {
@@ -52,7 +65,7 @@ export default {
     assert.equal(await clipboardText(page), 'clip');
   },
 
-  'images: Ctrl+C copies the image, also SVGs': async (ctx) => {
+  'images: Ctrl+C copies the image and its path, also SVGs': async (ctx) => {
     await setSettings(ctx, {});
     await allowClipboard(ctx);
     const page = await newPage(ctx);
@@ -60,17 +73,20 @@ export default {
       await page.goto(TEST_FILES + name);
       await waitForShown(page, name);
       await ctrlC(page);
-      const copied = await until(
-        () => page.evaluate(async () => {
-          const [item] = await navigator.clipboard.read();
-          if (!item.types.includes('image/png')) return null;
-          const bitmap = await createImageBitmap(await item.getType('image/png'));
-          return `${bitmap.width}x${bitmap.height}`;
-        }),
-        { message: `${name} on the clipboard` }
-      );
-      assert.equal(copied, '480x320', name);
+      assert.deepEqual(await clipboardImage(page), { size: '480x320', text: testFile(name) }, name);
     }
+  },
+
+  'folder view: Ctrl+C on an image copies the image and its path': async (ctx) => {
+    await setSettings(ctx, {});
+    await allowClipboard(ctx);
+    const page = await newPage(ctx);
+    await openFolder(page);
+    await page.keyboard.type('photo2');
+    await until(async () => (await selectedInFolder(page)) === 'photo2.png');
+    await ctrlC(page);
+    assert.deepEqual(await clipboardImage(page), { size: '480x320', text: testFile('photo2.png') });
+    await until(async () => (await page.$eval('#fn-explorer .fn-count', (e) => e.textContent)).startsWith('Copied the image'), { message: 'notice' });
   },
 
   'text files: the path, unless text is selected': async (ctx) => {
