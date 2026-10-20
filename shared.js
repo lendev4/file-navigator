@@ -85,6 +85,7 @@ const DEFAULT_SETTINGS = {
   fileBar: 'explorer', // explorer | always | never
   markdownView: 'rendered', // rendered | source
   csvView: 'rendered', // rendered (a table) | source
+  slideshowSeconds: 5,
 };
 
 async function getSettings() {

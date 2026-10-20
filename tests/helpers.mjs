@@ -169,3 +169,9 @@ export function folderOrder(dir = path.join(ROOT, 'test-files')) {
   const entries = fs.readdirSync(dir, { withFileTypes: true }).filter((d) => !d.name.startsWith('.'));
   return [...naturalSort(entries.filter((d) => d.isDirectory()).map((d) => d.name)), ...naturalSort(entries.filter((d) => !d.isDirectory()).map((d) => d.name))];
 }
+
+// Runs fn in the extension's background service worker.
+export async function inWorker(ctx, fn, ...args) {
+  const target = await ctx.browser.waitForTarget((t) => t.type() === 'service_worker' && t.url().includes(ctx.id));
+  return (await target.worker()).evaluate(fn, ...args);
+}

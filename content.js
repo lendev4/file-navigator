@@ -1,7 +1,8 @@
 // Runs on file:// pages, from the start of loading, and on the extension's
-// own text viewer (viewer.html). Plain arrow keys navigate only on Chrome's
+// own viewer (viewer.html). Plain arrow keys navigate only on Chrome's
 // built-in image and text viewers, where they aren't otherwise used. Elsewhere
 // (video, PDF, HTML files) use the Alt+Shift+Left/Right commands instead.
+// Images also get F (fullscreen), Space (slideshow) and zoom keys.
 
 (() => {
   // In the text viewer these describe the file it shows (see viewer.js).
@@ -44,7 +45,8 @@
       const make = (tag) => document.createElementNS(XHTML, tag);
       const [html, head, title, body, img] = ['html', 'head', 'title', 'body', 'img'].map(make);
       title.textContent = fileName;
-      body.style.cssText = 'margin: 0; height: 100%; display: flex; align-items: center; justify-content: center; background: #0e0e0e';
+      // "safe" keeps a zoomed-in image scrollable instead of overflowing to the left.
+      body.style.cssText = 'margin: 0; height: 100%; display: flex; align-items: safe center; justify-content: safe center; background: #0e0e0e';
       html.style.height = '100%';
       cloak(html);
       img.style.cssText = 'max-width: 100%; max-height: 100%';
@@ -63,6 +65,7 @@
     // so the header bar makes room by shrinking the body; text and HTML pages
     // are pushed down instead.
     const isMedia = isImage || /^(video|audio)\//.test(type);
+    const isVideo = type.startsWith('video/');
     const isPdf = type === 'application/pdf';
 
     // Navigation goes through the background, which also handles the text viewer.
@@ -81,19 +84,43 @@
       return el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName));
     }
 
-    if (isImage || isTextViewer) {
-      // Home/End only on images: in text files they scroll to the top/bottom.
-      const KEYS = { ArrowRight: { step: 1 }, ArrowLeft: { step: -1 } };
-      if (isImage) Object.assign(KEYS, { Home: { to: 'first' }, End: { to: 'last' } });
-      document.addEventListener('keydown', (e) => {
-        if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
-        if (isEditable(document.activeElement)) return;
-        if (e.key === 'Backspace') goToFolder();
-        else if (KEYS[e.key]) go(KEYS[e.key]);
-        else return;
-        e.preventDefault();
-      });
+    // The action for a key press here, if any. Arrows and Backspace only on
+    // Chrome's image and text viewers; Home/End, Space and zooming only on
+    // images (in text files they scroll); F also on videos.
+    function keyAction(e) {
+      const { key } = e;
+      const plain = !e.shiftKey;
+      if ((isImage || isTextViewer) && plain) {
+        if (key === 'ArrowRight') return () => go({ step: 1 });
+        if (key === 'ArrowLeft') return () => go({ step: -1 });
+        if (key === 'Backspace') return goToFolder;
+      }
+      if (isImage) {
+        if (plain && key === 'Home') return () => go({ to: 'first' });
+        if (plain && key === 'End') return () => go({ to: 'last' });
+        if (plain && key === ' ') return () => setSlideshow(!slideshow, true);
+        // + needs Shift on some keyboards, so Shift is fine for the zoom keys.
+        if (key === '+' || key === '=') return () => zoomBy(1.25);
+        if (key === '-') return () => zoomBy(1 / 1.25);
+        if (key === '0') return () => setZoom(null);
+        if (key === '1') return () => setZoom(1);
+      }
+      if ((isImage || isVideo) && (key === 'f' || key === 'F')) return toggleFullscreen;
+      if (key === 'Escape' && (slideshow || fullscreen)) {
+        return () => {
+          if (slideshow) setSlideshow(false, true);
+          if (fullscreen) toggleFullscreen();
+        };
+      }
     }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || isEditable(document.activeElement)) return;
+      const action = keyAction(e);
+      if (!action) return;
+      e.preventDefault();
+      action();
+    });
 
     const mask = (svg) => `url("data:image/svg+xml,${encodeURIComponent(
       `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'>${svg}</svg>`
@@ -211,7 +238,9 @@
       body.fn-bar-fit { position: fixed !important; inset: ${BAR_HEIGHT}px 0 0 0 !important; height: auto !important; margin: 0 !important; overflow: auto; }
       /* Chrome fits images to the window; fit them to the space below the bar
          instead, unless zoomed in (Chrome then shows a zoom-out cursor). */
-      body.fn-bar-fit > img:not([style*="zoom-out"]) { position: absolute; inset: 0; margin: auto; width: auto; height: auto; max-width: 100%; max-height: 100%; }`;
+      body.fn-bar-fit > img:not([style*="zoom-out"]) { position: absolute; inset: 0; margin: auto; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+      /* Zoomed with + / - / 1: a fixed width, scrolled in the page. */
+      img.fn-zoomed { width: var(--fn-zoom-width) !important; height: auto !important; max-width: none !important; max-height: none !important; position: static !important; margin: 0 auto !important; }`;
     (document.head || document.documentElement).appendChild(pageStyle);
 
     // Image size next to the name, once it's known.
@@ -226,6 +255,15 @@
     let fromExplorer = false;
     let position = null;
     let flashTimer;
+    // The window's fullscreen and the slideshow are kept by the background, so
+    // they carry on from file to file.
+    let fullscreen = false;
+    let slideshow = false;
+    let slideTimer;
+    // In fullscreen the bar only shows while the mouse is near the top.
+    let peek = false;
+    // null: fitted to the window as Chrome does; otherwise a scale (1 = 100 %).
+    let zoom = null;
 
     const barShown = () => !bar.hidden;
 
@@ -248,11 +286,66 @@
     // so it's decided before the page is revealed. The position needs the folder
     // listing and fills in a moment later without moving anything.
     function updateBar() {
-      const show = settings.fileBar === 'always' || (settings.fileBar === 'explorer' && fromExplorer);
-      bar.hidden = !show;
-      if (isMedia || isPdf) document.body?.classList.toggle('fn-bar-fit', show);
-      else document.documentElement.classList.toggle('fn-bar-push', show);
+      const wanted = settings.fileBar === 'always' || (settings.fileBar === 'explorer' && fromExplorer);
+      // In fullscreen it lies over the page instead of taking room.
+      const inLayout = wanted && !fullscreen;
+      bar.hidden = !(inLayout || (wanted && peek));
+      if (isMedia || isPdf) document.body?.classList.toggle('fn-bar-fit', inLayout);
+      else document.documentElement.classList.toggle('fn-bar-push', inLayout);
+      restLabel();
     }
+
+    document.addEventListener('mousemove', (e) => {
+      const near = fullscreen && e.clientY < BAR_HEIGHT * 1.5;
+      if (near === peek) return;
+      peek = near;
+      updateBar();
+    });
+
+    // Fullscreen is the browser window's, which, unlike page fullscreen, lasts
+    // when moving to the next file. The background switches it and reports back.
+    const toggleFullscreen = () => chrome.runtime.sendMessage({ type: 'fullscreen', on: !fullscreen });
+
+    function setSlideshow(on, announce) {
+      slideshow = on;
+      chrome.runtime.sendMessage({ type: 'slideshow', on });
+      if (announce) flash(on ? `Slideshow · every ${Number(settings.slideshowSeconds)} s` : 'Slideshow off');
+      scheduleSlide();
+    }
+
+    // Images move on after the set time once loaded, videos when they end.
+    function scheduleSlide() {
+      clearTimeout(slideTimer);
+      const video = isVideo && document.querySelector('video');
+      if (video) video.onended = slideshow ? nextSlide : null;
+      if (!slideshow || !img) return;
+      if (!img.complete) return img.addEventListener('load', scheduleSlide, { once: true });
+      slideTimer = setTimeout(nextSlide, Number(settings.slideshowSeconds) * 1000);
+    }
+
+    async function nextSlide() {
+      const res = await chrome.runtime.sendMessage({ type: 'navigate', move: { step: 1 }, url: fileUrl });
+      if (!res?.edge) return;
+      setSlideshow(false);
+      flash('Slideshow finished');
+    }
+
+    // The point in the middle of the window stays put while zooming.
+    function setZoom(scale) {
+      if (!img?.naturalWidth) return;
+      const before = img.getBoundingClientRect();
+      const fx = (innerWidth / 2 - before.left) / before.width;
+      const fy = (innerHeight / 2 - before.top) / before.height;
+      zoom = scale === null ? null : Math.min(16, Math.max(0.05, scale));
+      img.classList.toggle('fn-zoomed', zoom !== null);
+      if (zoom !== null) img.style.setProperty('--fn-zoom-width', `${img.naturalWidth * zoom}px`);
+      const after = img.getBoundingClientRect();
+      const scroller = document.body.classList.contains('fn-bar-fit') || type === 'image/svg+xml' ? document.body : document.scrollingElement;
+      scroller.scrollBy(after.left + fx * after.width - innerWidth / 2, after.top + fy * after.height - innerHeight / 2);
+      flash(zoom === null ? 'Fit to window' : `${Math.round(zoom * 100)} %`);
+    }
+
+    const zoomBy = (factor) => img && setZoom((zoom ?? img.getBoundingClientRect().width / img.naturalWidth) * factor);
 
     function updatePosition() {
       $('.count').textContent = position ? `${position.index + 1} / ${position.total}` : '';
@@ -277,7 +370,10 @@
       .then(([loaded, state]) => {
         settings = loaded;
         fromExplorer = !!state?.fromExplorer;
+        fullscreen = !!state?.fullscreen;
+        slideshow = !!state?.slideshow;
         updateBar();
+        scheduleSlide();
       })
       .finally(() => {
         clearTimeout(cloakTimer);
@@ -287,6 +383,11 @@
 
     chrome.runtime.onMessage.addListener((msg) => {
       if (msg.type === 'edge') flash(msg.step > 0 ? 'Last file' : 'First file');
+      if (msg.type === 'fullscreen' && msg.on !== fullscreen) {
+        fullscreen = msg.on;
+        peek = false;
+        updateBar();
+      }
     });
     chrome.storage.onChanged.addListener(async (_changes, area) => {
       if (area !== 'sync') return;

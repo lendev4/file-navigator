@@ -126,7 +126,35 @@ async function openFromExplorer(fromTab, url, newTab) {
   await show(tabId, url);
 }
 
-chrome.tabs.onRemoved.addListener((tabId) => chrome.storage.session.remove(explorerKey(tabId)));
+// Slideshows run per tab, across the files they step through.
+const slideshowKey = (tabId) => `slideshow:${tabId}`;
+
+// F switches the browser window to fullscreen (page fullscreen would end at the
+// next file) and back to how it was before, e.g. maximized.
+async function setFullscreen(windowId, on, tabId) {
+  const key = `window-state:${windowId}`;
+  const win = await chrome.windows.get(windowId);
+  if (on && win.state !== 'fullscreen') {
+    await chrome.storage.session.set({ [key]: win.state });
+    await chrome.windows.update(windowId, { state: 'fullscreen' });
+  } else if (!on && win.state === 'fullscreen') {
+    const before = (await chrome.storage.session.get(key))[key];
+    await chrome.windows.update(windowId, { state: before && before !== 'fullscreen' ? before : 'normal' });
+  }
+  const { state } = await chrome.windows.get(windowId);
+  chrome.tabs.sendMessage(tabId, { type: 'fullscreen', on: state === 'fullscreen' }).catch(() => {});
+}
+
+// Lets the window's active tab know, also when F11 changed it.
+async function tellFullscreen(windowId) {
+  const win = await chrome.windows.get(windowId, { populate: true });
+  const tab = win.tabs.find((t) => t.active);
+  if (tab) chrome.tabs.sendMessage(tab.id, { type: 'fullscreen', on: win.state === 'fullscreen' }).catch(() => {});
+}
+
+chrome.windows.onBoundsChanged.addListener((win) => tellFullscreen(win.id).catch(() => {}));
+
+chrome.tabs.onRemoved.addListener((tabId) => chrome.storage.session.remove([explorerKey(tabId), slideshowKey(tabId)]));
 
 chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
 
@@ -150,8 +178,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   } else if (msg.type === 'go') {
     show(tab.id, msg.url);
   } else if (msg.type === 'bar-state') {
-    fromExplorer(tab.id, msg.url).then((opened) => sendResponse({ fromExplorer: opened }));
+    Promise.all([fromExplorer(tab.id, msg.url), chrome.windows.get(tab.windowId), chrome.storage.session.get(slideshowKey(tab.id))])
+      .then(([opened, win, slides]) =>
+        sendResponse({ fromExplorer: opened, fullscreen: win.state === 'fullscreen', slideshow: !!slides[slideshowKey(tab.id)] })
+      );
     return true;
+  } else if (msg.type === 'fullscreen') {
+    setFullscreen(tab.windowId, msg.on, tab.id).catch(console.error);
+  } else if (msg.type === 'slideshow') {
+    chrome.storage.session.set({ [slideshowKey(tab.id)]: msg.on });
   } else if (msg.type === 'position') {
     const justMoved = justNavigated.delete(tab.id);
     siblings(msg.url)

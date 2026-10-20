@@ -79,6 +79,21 @@
       </section>
 
       <section class="card">
+        <h2>Slideshow</h2>
+        <div class="row">
+          <label for="slideshowSeconds">Next image after</label>
+          <select id="slideshowSeconds" name="slideshowSeconds">
+            <option value="2">2 seconds</option>
+            <option value="3">3 seconds</option>
+            <option value="5">5 seconds</option>
+            <option value="8">8 seconds</option>
+            <option value="10">10 seconds</option>
+          </select>
+        </div>
+        <p class="hint">Press <kbd>Space</kbd> on an image to start or stop it. Videos play to the end before moving on.</p>
+      </section>
+
+      <section class="card">
         <h2>Folder view</h2>
         <label class="check"><input type="checkbox" name="folderView"> Show folders as a file explorer instead of Chrome's plain listing</label>
         <p class="hint">Folders first, file-type icons, a clickable path and a filter box. Uses the sort order and hidden-file setting above. Keys: <kbd>↑</kbd> <kbd>↓</kbd> select, <kbd>Enter</kbd> or <kbd>→</kbd> open, <kbd>Ctrl</kbd> <kbd>Enter</kbd> open in a new tab, <kbd>←</kbd> or <kbd>Backspace</kbd> parent folder, type letters to jump, <kbd>/</kbd> filter, <kbd>Esc</kbd> clear.</p>
@@ -110,6 +125,11 @@
         <tbody>
           <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Previous / next file in images and text files</td></tr>
           <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>First / last file in images</td></tr>
+          <tr><td><kbd>Backspace</kbd></td><td>Back to the folder in images and text files</td></tr>
+          <tr><td><kbd>F</kbd></td><td>Fullscreen in images and videos; it stays on while stepping</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>Start / stop a slideshow in images</td></tr>
+          <tr><td><kbd>+</kbd> <kbd>−</kbd> <kbd>0</kbd> <kbd>1</kbd></td><td>Zoom in / out, fit to window, actual size in images</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Stop the slideshow and leave fullscreen</td></tr>
         </tbody>
         <tbody id="commands"></tbody>
       </table>
