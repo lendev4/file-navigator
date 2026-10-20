@@ -6,6 +6,11 @@
 (() => {
   if (!location.pathname.endsWith('/')) return;
 
+  // Hide Chrome's listing straight away: reading the settings takes a moment,
+  // and on fast pages Chrome would draw its listing before. The folder view is
+  // on by default; apply() shows the listing again if it's turned off.
+  document.documentElement.classList.add('fn-explorer');
+
   // Where the toolbar icon opens the folder view next time.
   chrome.storage.local.set({ lastFolder: location.href.split('#')[0] });
 
@@ -40,7 +45,7 @@
 
   async function apply() {
     settings = await getSettings();
-    // Set as early as possible: the CSS hides Chrome's listing under this class.
+    // The CSS hides Chrome's listing under this class.
     document.documentElement.classList.toggle('fn-explorer', settings.folderView);
     if (!settings.folderView) return;
     chosenLayout = (await chrome.storage.local.get(LAYOUTS))[LAYOUTS]?.[location.pathname];

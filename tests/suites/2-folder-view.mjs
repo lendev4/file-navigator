@@ -106,6 +106,21 @@ export default {
     assert.equal(await selectedInFolder(page), 'test-files');
   },
 
+  "Chrome's listing never shows, not even for a frame": async (ctx) => {
+    await setSettings(ctx, {});
+    const page = await newPage(ctx);
+    // Before the page's first frame is drawn, record whether the folder view's
+    // styles (which hide Chrome's listing) are already active.
+    await page.evaluateOnNewDocument(() => {
+      requestAnimationFrame(() => (window.__hiddenAtFirstFrame = document.documentElement.classList.contains('fn-explorer')));
+    });
+    for (let i = 0; i < 5; i++) {
+      await page.goto(TEST_FILES + (i % 2 ? 'subfolder/' : ''));
+      await page.waitForFunction(() => '__hiddenAtFirstFrame' in window);
+      assert.equal(await page.evaluate(() => window.__hiddenAtFirstFrame), true, `load ${i + 1}`);
+    }
+  },
+
   "turning it off brings back Chrome's listing, also live": async (ctx) => {
     await setSettings(ctx, { folderView: false });
     const page = await newPage(ctx);
