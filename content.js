@@ -249,6 +249,9 @@
       /* Chrome fits images to the window; fit them to the space below the bar
          instead, unless zoomed in (Chrome then shows a zoom-out cursor). */
       body.fn-bar-fit > img:not([style*="zoom-out"]) { position: absolute; inset: 0; margin: auto; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+      /* Chrome's video page only ever shrinks a video; in fullscreen it fills the
+         screen, like the player's own fullscreen. */
+      html.fn-fullscreen video { position: fixed !important; inset: 0 !important; width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; margin: 0 !important; object-fit: contain; }
       /* Zoomed with + / - / 1: a fixed width, scrolled in the page. */
       img.fn-zoomed { width: var(--fn-zoom-width) !important; height: auto !important; max-width: none !important; max-height: none !important; position: static !important; margin: 0 auto !important; }`;
     (document.head || document.documentElement).appendChild(pageStyle);
@@ -302,6 +305,7 @@
       bar.hidden = !(inLayout || (wanted && peek));
       if (isMedia || isPdf) document.body?.classList.toggle('fn-bar-fit', inLayout);
       else document.documentElement.classList.toggle('fn-bar-push', inLayout);
+      document.documentElement.classList.toggle('fn-fullscreen', fullscreen);
       restLabel();
     }
 

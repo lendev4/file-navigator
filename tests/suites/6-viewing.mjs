@@ -1,7 +1,7 @@
 // Viewing images: fullscreen, slideshow and zoom.
 
 import assert from 'node:assert/strict';
-import { newPage, setSettings, tempFolder, waitForShown, inWorker, barVisible, barButton, until, sleep, shown } from '../helpers.mjs';
+import { TEST_FILES, newPage, setSettings, tempFolder, viewerUrl, waitForShown, inWorker, barVisible, barButton, until, sleep, shown } from '../helpers.mjs';
 
 const photos = () => tempFolder({ 'photo1.png': '@photo1.png', 'photo2.png': '@photo2.png', 'photo3.png': '@photo3.png' });
 const windowState = (ctx) => inWorker(ctx, async () => (await chrome.windows.getAll()).find((w) => w.type === 'normal')?.state);
@@ -32,6 +32,24 @@ export default {
       await until(() => barVisible(page), { message: 'bar back' });
     } finally {
       f.remove();
+    }
+  },
+
+  'videos fill the screen in fullscreen': async (ctx) => {
+    await setSettings(ctx, { fileBar: 'always' });
+    const page = await newPage(ctx, { width: 1600, height: 900 });
+    const size = () => page.$eval('video', (v) => { const r = v.getBoundingClientRect(); return [r.width, r.height].map(Math.round); });
+    for (const url of [TEST_FILES + 'clip1.webm', viewerUrl(ctx, TEST_FILES + 'movie-h264.mov')]) {
+      await page.goto(url);
+      await page.waitForFunction(() => document.querySelector('video')?.readyState >= 1);
+      await sleep(300);
+      const normal = await size();
+      assert.ok(normal[0] < 1600, `smaller than the window before (${normal})`);
+      await page.keyboard.press('f');
+      await until(async () => (await size())[0] === 1600, { message: 'video filling the window' });
+      assert.deepEqual(await size(), [1600, 900]);
+      await page.keyboard.press('Escape');
+      await until(async () => (await size())[0] === normal[0], { message: 'video back to its size' });
     }
   },
 
