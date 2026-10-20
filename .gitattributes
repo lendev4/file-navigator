@@ -1,0 +1,11 @@
+# Left out of the Chrome Web Store zip (see build.sh).
+tests/ export-ignore
+test-files/ export-ignore
+store/ export-ignore
+build.sh export-ignore
+mise.toml export-ignore
+README.md export-ignore
+PRIVACY.md export-ignore
+icons/icon.svg export-ignore
+.gitignore export-ignore
+.gitattributes export-ignore

@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "File Navigator",
-  "version": "0.17.0",
+  "version": "1.0.0",
+  "minimum_chrome_version": "116",
   "description": "Browse local files like in a file explorer: folder view with thumbnails, arrow keys to step through files, Markdown, CSV and music.",
-  "permissions": ["offscreen", "storage", "tabs"],
+  "permissions": ["offscreen", "storage"],
   "host_permissions": ["file:///*"],
   "icons": {
     "16": "icons/icon16.png",

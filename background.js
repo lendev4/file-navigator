@@ -29,8 +29,8 @@ async function ensureOffscreen() {
   try {
     await chrome.offscreen.createDocument({
       url: 'offscreen.html',
-      reasons: ['DOM_PARSER'],
-      justification: 'Read the file:// directory listing of the current folder',
+      reasons: ['DOM_PARSER', 'BLOBS'],
+      justification: 'Read local folder listings and files (file:// URLs), which the service worker cannot load, and convert images to PNG for copying',
     });
   } catch (err) {
     // A concurrent call may have created it already.

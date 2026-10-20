@@ -4,7 +4,8 @@
   "description": "Browser tests for the File Navigator extension",
   "scripts": {
     "test": "node run.mjs",
-    "icons": "node render-icons.mjs"
+    "icons": "node render-icons.mjs",
+    "store": "node store-assets.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "25.12.0"

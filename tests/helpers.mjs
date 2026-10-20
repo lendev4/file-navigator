@@ -10,6 +10,8 @@ import puppeteer from 'puppeteer-core';
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 export const TEST_FILES = pathToFileURL(path.join(ROOT, 'test-files') + '/').href;
+// The extension to test: the repository, or e.g. the unpacked release zip.
+const EXTENSION = process.env.EXTENSION_PATH ? path.resolve(process.env.EXTENSION_PATH) : ROOT;
 
 // Any Chromium-based browser works. CHROME_PATH overrides the search.
 export function findBrowser() {
@@ -30,11 +32,13 @@ function which(cmd) {
 }
 
 // Extensions loaded from the command line get file access without the toggle.
-export async function launch() {
+// `args` and `env` add to the browser's command line and environment.
+export async function launch({ args = [], env = {} } = {}) {
   const browser = await puppeteer.launch({
     executablePath: findBrowser(),
     headless: true,
-    args: [`--disable-extensions-except=${ROOT}`, `--load-extension=${ROOT}`, '--no-first-run', '--autoplay-policy=no-user-gesture-required'],
+    args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`, '--no-first-run', '--autoplay-policy=no-user-gesture-required', ...args],
+    env: { ...process.env, ...env },
   });
   const worker = await browser.waitForTarget((t) => t.type() === 'service_worker', { timeout: 10000 });
   return { browser, id: new URL(worker.url()).host };

@@ -31,6 +31,18 @@ export default {
     assert.match(shortcut, /E$/);
   },
 
+  // Without the "tabs" permission, the shortcuts still need the address of
+  // file pages and of the extension's own viewer and player tabs.
+  'the background can read the tab addresses the shortcuts need': async (ctx) => {
+    const page = await newPage(ctx);
+    for (const url of [TEST_FILES + 'notes.txt', `chrome-extension://${ctx.id}/viewer.html?file=${encodeURIComponent(TEST_FILES + 'table.csv')}`]) {
+      await page.goto(url);
+      await sleep(300);
+      const urls = await inWorker(ctx, async () => (await chrome.tabs.query({})).map((t) => t.url));
+      assert.ok(urls.includes(url), `${url} in ${JSON.stringify(urls)}`);
+    }
+  },
+
   'opens the home folder at first': async (ctx) => {
     await setSettings(ctx, {});
     assert.equal(await clickIcon(ctx), expectedHome());

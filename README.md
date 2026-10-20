@@ -91,6 +91,17 @@ supported kind for trying things out.
 | `options.*` | The settings page |
 | `shared.js` | File types, settings and URL helpers used everywhere |
 
+### Release
+
+1. Raise `version` in `manifest.json` and commit.
+2. `./build.sh` makes `dist/file-navigator-<version>.zip` from the committed
+   files, without tests, test files and store assets (see `.gitattributes`).
+3. Optionally run the tests against the zip:
+   `unzip -d /tmp/fn dist/file-navigator-<version>.zip && EXTENSION_PATH=/tmp/fn npm test` in `tests/`.
+4. Upload the zip in the Chrome Web Store developer dashboard. The listing
+   texts, permission justifications and images are in `store/`
+   (`mise exec -- npm run store` in `tests/` regenerates the images).
+
 ### Tests
 
 Browser tests drive a headless Chromium-based browser with the extension
