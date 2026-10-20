@@ -31,9 +31,36 @@ A link to [notes.txt](notes.txt), to [a subfolder](subfolder/) and to [the CSV](
 ## Code
 
 ```js
+// Greets someone.
 function hello(name) {
-  return `Hello, ${name}!`;
+  const count = 3;
+  return `Hello, ${name}! x${count}`;
 }
+```
+
+```python
+def area(radius: float) -> float:
+    """Area of a circle."""
+    return 3.14159 * radius ** 2  # good enough
+```
+
+```bash
+for f in *.md; do echo "Found $f"; done
+```
+
+```diff
+- old line
++ new line
+```
+
+A block without a language, and one in a language highlight.js doesn't know, stay plain:
+
+```
+plain text block
+```
+
+```klingon
+qaStaH nuq?
 ```
 
 ## An image

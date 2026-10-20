@@ -12,6 +12,16 @@
   --md-link: #0969da;
   --md-switch: #f1f1ee;
   --md-switch-on: #ffffff;
+  /* Code highlighting */
+  --hl-keyword: #cf222e;
+  --hl-string: #0a3069;
+  --hl-number: #0550ae;
+  --hl-comment: #6e7781;
+  --hl-title: #8250df;
+  --hl-type: #953800;
+  --hl-tag: #116329;
+  --hl-addition: #116329;
+  --hl-deletion: #82071e;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -25,6 +35,15 @@
     --md-link: #6f9df0;
     --md-switch: #222225;
     --md-switch-on: #34343a;
+    --hl-keyword: #ff7b72;
+    --hl-string: #a5d6ff;
+    --hl-number: #79c0ff;
+    --hl-comment: #8b949e;
+    --hl-title: #d2a8ff;
+    --hl-type: #ffa657;
+    --hl-tag: #7ee787;
+    --hl-addition: #aff5b4;
+    --hl-deletion: #ffdcd7;
   }
 }
 
@@ -143,6 +162,20 @@ html.fn-markdown:not(.fn-rendered) body, html.fn-csv body { padding: 48px 8px 8p
 @media (max-width: 600px) {
   .markdown { padding: 56px 16px 64px; }
 }
+
+/* Code highlighting (highlight.js classes), GitHub-like colours */
+.hljs-keyword, .hljs-doctag, .hljs-meta .hljs-keyword, .hljs-template-tag, .hljs-type.hljs-keyword { color: var(--hl-keyword); }
+.hljs-string, .hljs-regexp, .hljs-meta .hljs-string, .hljs-char.escape_ { color: var(--hl-string); }
+.hljs-number, .hljs-literal, .hljs-attr, .hljs-attribute, .hljs-variable, .hljs-template-variable,
+.hljs-symbol, .hljs-selector-attr, .hljs-selector-class, .hljs-selector-id, .hljs-meta, .hljs-operator { color: var(--hl-number); }
+.hljs-comment, .hljs-code, .hljs-formula { color: var(--hl-comment); font-style: italic; }
+.hljs-title, .hljs-title.function_, .hljs-title.class_, .hljs-section { color: var(--hl-title); }
+.hljs-type, .hljs-built_in, .hljs-params, .hljs-variable.language_, .hljs-property { color: var(--hl-type); }
+.hljs-name, .hljs-tag, .hljs-selector-tag, .hljs-quote, .hljs-bullet { color: var(--hl-tag); }
+.hljs-addition { color: var(--hl-addition); background: color-mix(in srgb, var(--hl-addition) 15%, transparent); }
+.hljs-deletion { color: var(--hl-deletion); background: color-mix(in srgb, var(--hl-deletion) 15%, transparent); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }
 
 /* CSV / TSV table */
 .csv { font: 13px/1.4 system-ui, sans-serif; color: var(--md-text); }

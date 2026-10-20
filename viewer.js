@@ -115,6 +115,26 @@ function renderMarkdown(text, article) {
   };
   article.addEventListener('click', (e) => follow(e, e.ctrlKey || e.metaKey));
   article.addEventListener('auxclick', (e) => e.button === 1 && follow(e, true));
+
+  highlightCode(article);
+}
+
+// Syntax highlighting for code blocks that name a language (```js). The
+// library is only loaded when there is something to highlight.
+async function highlightCode(article) {
+  const blocks = [...article.querySelectorAll('pre > code[class*="language-"]')];
+  if (!blocks.length) return;
+  await new Promise((resolve, reject) => {
+    const script = Object.assign(document.createElement('script'), { src: 'vendor/highlight.min.js' });
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+  for (const code of blocks) {
+    const language = code.className.match(/language-(\S+)/)[1];
+    // Unknown languages stay plain rather than being guessed.
+    if (hljs.getLanguage(language)) hljs.highlightElement(code);
+  }
 }
 
 // CSV / TSV -------------------------------------------------------------------
