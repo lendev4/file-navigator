@@ -38,12 +38,14 @@ async function ensureOffscreen() {
   }
 }
 
-async function listDir(dirUrl) {
+async function offscreen(message) {
   await ensureOffscreen();
-  const res = await chrome.runtime.sendMessage({ target: 'offscreen', type: 'list-dir', dirUrl });
+  const res = await chrome.runtime.sendMessage({ target: 'offscreen', ...message });
   if (!res || res.error) throw new Error(res ? res.error : 'No response from offscreen document');
-  return res.entries;
+  return res;
 }
+
+const listDir = async (dirUrl) => (await offscreen({ type: 'list-dir', dirUrl })).entries;
 
 // Returns the sorted sibling files in the current file's group and its index.
 // `overrides` replace settings, e.g. to always group by kind.
@@ -242,6 +244,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     openFromExplorer(tab, msg.url, msg.newTab).catch(console.error);
   } else if (msg.type === 'playlist') {
     playlist(msg.url).then(sendResponse, (err) => sendResponse({ error: err.message }));
+    return true;
+  } else if (msg.type === 'image-png') {
+    offscreen({ type: 'image-png', url: msg.url }).then(sendResponse, (err) => sendResponse({ error: err.message }));
     return true;
   } else if (msg.type === 'open-options') {
     chrome.runtime.openOptionsPage();

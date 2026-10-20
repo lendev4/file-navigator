@@ -30,6 +30,9 @@ Works in Chrome and other Chromium-based browsers.
   shuffle, repeat (all or one track), a track list, cover art (from MP3 tags
   or a `cover.jpg` in the folder), titles and artists from MP3 tags, and
   media keys.
+- **Ctrl+C** copies the image on image pages, and the file's path elsewhere
+  (folder view, text, videos, the viewer and the music player) when no text
+  is selected. Browsers can't put actual files on the clipboard.
 - **Markdown** is rendered (GitHub-style, with syntax highlighting for code
   blocks that name a language), with a switch to the source.
 - **CSV and TSV** open as tables (delimiter detection, number columns,

@@ -66,6 +66,14 @@ function fileUrlOf(tabUrl) {
   return page ? new URL(tabUrl).searchParams.get('file') : tabUrl;
 }
 
+// A file URL as a path to paste elsewhere: /home/me/a.txt, or C:\Users\a.txt
+// on Windows. Folders lose their trailing slash.
+function filePath(fileUrl) {
+  let path = decodeURIComponent(new URL(fileUrl).pathname);
+  if (path.length > 1) path = path.replace(/\/$/, '');
+  return /^\/[a-z]:\//i.test(path) ? path.slice(1).replace(/\//g, '\\') : path;
+}
+
 // Images in a music folder used as its cover.
 const COVER_NAMES = /^(cover|folder|front|album|albumart)\.(jpe?g|png|webp)$/i;
 

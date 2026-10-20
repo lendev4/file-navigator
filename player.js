@@ -120,6 +120,19 @@ function cycleRepeat() {
   updateModes();
 }
 
+// Ctrl+C: the current track's path (browsers can't copy files themselves).
+let noticeTimer;
+function copyPath() {
+  const path = filePath(tracks[index].url);
+  navigator.clipboard.writeText(path).then(() => {
+    $('message').textContent = `Copied ${path}`;
+    $('message').className = 'message notice';
+    $('message').hidden = false;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => ($('message').hidden = true), 2000);
+  });
+}
+
 function goToFolder() {
   const url = folderUrl + '#' + encodeURIComponent(tracks[index]?.name || '');
   chrome.runtime.sendMessage({ type: 'go', url });
@@ -143,6 +156,7 @@ for (const event of ['play', 'pause', 'loadedmetadata', 'timeupdate', 'volumecha
 
 function showMessage(text) {
   $('message').textContent = text;
+  $('message').className = 'message';
   $('message').hidden = false;
 }
 
@@ -284,7 +298,12 @@ $('mute').addEventListener('click', () => (audio.muted = !audio.muted));
 $('back').addEventListener('click', goToFolder);
 
 document.addEventListener('keydown', (e) => {
-  if (e.altKey || e.ctrlKey || e.metaKey || e.defaultPrevented) return;
+  if (e.defaultPrevented) return;
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c' && !String(getSelection()) && tracks.length) {
+    e.preventDefault();
+    return copyPath();
+  }
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
   const actions = {
     ' ': togglePlay,
     ArrowRight: () => (e.shiftKey ? seekBy(10) : next()),

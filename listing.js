@@ -283,8 +283,8 @@
       button.querySelector('.fn-sort').textContent = key === sort.key ? (sort.dir === 'asc' ? '▲' : '▼') : '';
     }
     const n = visible.length;
-    ui.count.textContent =
-      `${n} ${n === 1 ? 'item' : 'items'}` + (hidden.length ? ` · ${hidden.length} hidden` : '');
+    ui.countText = `${n} ${n === 1 ? 'item' : 'items'}` + (hidden.length ? ` · ${hidden.length} hidden` : '');
+    ui.count.textContent = ui.countText;
     const keepIndex = visible.findIndex((e) => e.name === keep);
     select(keepIndex === -1 ? 0 : keepIndex, false);
   }
@@ -299,6 +299,26 @@
     row.setAttribute('aria-selected', 'true');
     ui.rows.setAttribute('aria-activedescendant', row.id);
     if (scroll) row.scrollIntoView({ block: 'nearest' });
+  }
+
+  // Shown in the footer for a moment, in place of the item count.
+  let noticeTimer;
+  function notice(text) {
+    ui.count.textContent = text;
+    ui.count.title = text;
+    clearTimeout(noticeTimer);
+    noticeTimer = setTimeout(() => {
+      ui.count.textContent = ui.countText;
+      ui.count.title = '';
+    }, 2000);
+  }
+
+  // Browsers can't put files on the clipboard, so Ctrl+C copies the path, to
+  // paste into a terminal, a file dialog or a file manager's address bar.
+  function copyPath(entry) {
+    if (!entry) return;
+    const path = filePath(entry.href);
+    navigator.clipboard.writeText(path).then(() => notice(`Copied ${path}`), () => notice("Couldn't copy the path"));
   }
 
   // Files open through the background, which remembers they came from here
@@ -354,6 +374,12 @@
     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       return open(visible[selected], true);
+    }
+    // Ctrl+C, unless there's selected text (in the filter box, say) to copy.
+    const selectedText = inFilter ? ui.filter.selectionStart !== ui.filter.selectionEnd : String(getSelection());
+    if (e.key.toLowerCase() === 'c' && (e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && !selectedText) {
+      e.preventDefault();
+      return copyPath(visible[selected]);
     }
     // Leave browser shortcuts such as Alt+Left (Back) alone.
     if (e.altKey || e.ctrlKey || e.metaKey) return;

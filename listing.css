@@ -249,7 +249,7 @@ html.fn-explorer body {
   text-align: center;
 }
 #fn-explorer .fn-key-extra { margin-left: 6px; }
-#fn-explorer .fn-count { flex: none; white-space: nowrap; }
+#fn-explorer .fn-count { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #fn-explorer .fn-keys { text-align: end; }
 
 /* Settings button */

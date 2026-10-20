@@ -80,6 +80,25 @@
         if (res?.edge) flash(res.edge > 0 ? 'Last file' : 'First file');
       });
 
+    // Browsers can't put files on the clipboard; the path pastes into a
+    // terminal, a file dialog or a file manager's address bar.
+    function copyPath() {
+      const path = filePath(fileUrl);
+      navigator.clipboard.writeText(path).then(() => flash(`Copied ${path}`), () => flash("Couldn't copy the path"));
+    }
+
+    // The clipboard takes PNG images only; the background converts the file.
+    // Handing the clipboard a promise keeps the key press's permission meanwhile.
+    function copyImage() {
+      const png = chrome.runtime.sendMessage({ type: 'image-png', url: fileUrl }).then(async (res) => {
+        if (!res?.png) throw new Error(res?.error || 'No image');
+        return (await fetch(res.png)).blob();
+      });
+      navigator.clipboard
+        .write([new ClipboardItem({ 'image/png': png })])
+        .then(() => flash('Copied the image'), () => flash("Couldn't copy the image"));
+    }
+
     // Back to the folder, with this file selected in the folder view.
     function goToFolder() {
       const url = new URL('./', fileUrl).href + '#' + encodeURIComponent(fileName);
@@ -123,7 +142,13 @@
     }
 
     document.addEventListener('keydown', (e) => {
-      if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || isEditable(document.activeElement)) return;
+      if (e.defaultPrevented || isEditable(document.activeElement)) return;
+      // Ctrl+C with nothing selected copies the image, or the file's path.
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'c' && !String(getSelection())) {
+        e.preventDefault();
+        return isImage ? copyImage() : copyPath();
+      }
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
       const action = keyAction(e);
       if (!action) return;
       e.preventDefault();
@@ -196,19 +221,23 @@
         .kind.html { background: var(--html); }
         .title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
         .meta { flex: none; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .copy { flex: none; width: 28px; height: 28px; padding: 0; justify-content: center; color: var(--muted); }
+        .copy:hover { color: var(--text); }
+        .copy .i { width: 15px; height: 15px; }
+        .i-copy { -webkit-mask-image: ${mask("<rect x='9' y='9' width='12' height='12' rx='2'/><path d='M5 15V5a2 2 0 0 1 2-2h8'/>")}; }
 
         .nav { flex: none; display: flex; align-items: center; gap: 2px; }
         .step { width: 30px; justify-content: center; padding: 0; }
         .count { min-width: 3.5em; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
 
         @media (max-width: 520px) {
-          .dir, .meta, .divider { display: none; }
+          .dir, .meta, .divider, .copy { display: none; }
         }
       </style>
       <div class="bar" hidden>
         <button class="back" title="Back to folder (Backspace)"><span class="i i-back"></span><span class="dir"></span></button>
         <span class="divider"></span>
-        <span class="file"><span class="kind"></span><span class="title"></span><span class="meta"></span></span>
+        <span class="file"><span class="kind"></span><span class="title"></span><span class="meta"></span><button class="copy" title="Copy path (Ctrl+C)" aria-label="Copy path"><span class="i i-copy"></span></button></span>
         <span class="nav">
           <button class="step slide" hidden><span class="i i-play"></span></button>
           <button class="step prev" title="Previous file" aria-label="Previous file" disabled><span class="i i-prev"></span></button>
@@ -230,6 +259,7 @@
     setTheme();
     $('.dir').textContent = folderName;
     $('.back').addEventListener('click', goToFolder);
+    $('.copy').addEventListener('click', copyPath);
     $('.prev').addEventListener('click', () => go({ step: -1 }));
     $('.next').addEventListener('click', () => go({ step: 1 }));
     const slideButton = $('.slide');
