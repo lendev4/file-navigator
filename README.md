@@ -8,6 +8,15 @@ Chrome would otherwise download.
 
 Works in Chrome and other Chromium-based browsers.
 
+![The folder view as a thumbnail grid](store/screenshots/2-photo-grid.png)
+
+| | |
+|---|---|
+| ![Folder view](store/screenshots/1-folder-view.png) | ![Photo with the header bar](store/screenshots/3-photo-viewer.png) |
+| Folder view | Stepping through photos |
+| ![Rendered Markdown](store/screenshots/4-markdown.png) | ![Music player](store/screenshots/5-music-player.png) |
+| Rendered Markdown | Music player |
+
 ## Features
 
 - **Step through a folder.** ← / → open the previous or next file of the same
@@ -48,10 +57,16 @@ Works in Chrome and other Chromium-based browsers.
 
 ## Install
 
-1. Open `chrome://extensions` and turn on **Developer mode**.
-2. Click **Load unpacked** and choose this folder.
-3. Open the extension's **Details** and turn on **Allow access to file URLs**.
-   Without it the extension can't do anything on local files.
+From the Chrome Web Store (in review), or from a release zip or this folder:
+
+1. Download `file-navigator-<version>.zip` from the
+   [releases](https://github.com/lendev4/file-navigator/releases) and unzip it,
+   or clone this repository.
+2. Open `chrome://extensions`, turn on **Developer mode**, click **Load
+   unpacked** and choose the folder.
+
+Then open the extension's **Details** and turn on **Allow access to file
+URLs**. Without it the extension can't do anything on local files.
 
 Click the toolbar icon (or press Alt+Shift+E) to open the folder view: in the
 start folder from the settings, else the last folder you browsed, else your
@@ -101,6 +116,11 @@ supported kind for trying things out.
 4. Upload the zip in the Chrome Web Store developer dashboard. The listing
    texts, permission justifications and images are in `store/`
    (`mise exec -- npm run store` in `tests/` regenerates the images).
+
+### License
+
+MIT, see [LICENSE](LICENSE). The bundled libraries in `vendor/` keep their own
+licenses.
 
 ### Tests
 
