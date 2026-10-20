@@ -1,8 +1,10 @@
 # File Navigator
 
-A Chrome extension for browsing local files (`file://` pages). Step through the
-files of a folder with the arrow keys, browse folders in a file-explorer style
-view, and open files Chrome would otherwise download.
+A Chrome extension for browsing local files (`file://` pages) like in a file
+explorer: a folder view with a list or thumbnails, the arrow keys to step
+through the files of a folder, a header bar, image viewing with fullscreen,
+slideshow and zoom, rendered Markdown, CSV tables, a music player, and files
+Chrome would otherwise download.
 
 Works in Chrome and other Chromium-based browsers.
 
