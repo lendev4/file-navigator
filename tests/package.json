@@ -1,0 +1,12 @@
+{
+  "private": true,
+  "type": "module",
+  "description": "Browser tests for the File Navigator extension",
+  "scripts": {
+    "test": "node run.mjs",
+    "icons": "node render-icons.mjs"
+  },
+  "devDependencies": {
+    "puppeteer-core": "25.12.0"
+  }
+}

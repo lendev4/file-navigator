@@ -26,7 +26,9 @@ async function showStatus() {
 }
 
 async function showCommands() {
-  const rows = (await chrome.commands.getAll()).map((cmd) => {
+  // Chrome also lists its own _execute_action (clicking the toolbar icon).
+  const commands = (await chrome.commands.getAll()).filter((cmd) => !cmd.name.startsWith('_'));
+  const rows = commands.map((cmd) => {
     const tr = document.createElement('tr');
     const keys = document.createElement('td');
     if (cmd.shortcut) {
