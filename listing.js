@@ -155,16 +155,31 @@
 
     const rows = el('div', { className: 'fn-rows' });
     rows.setAttribute('role', 'listbox');
-    // Clicks go through open() too, so files opened by mouse get the header bar.
-    // Shift+click (new window) is left to the browser.
-    const onRowClick = (e, newTab) => {
+    // Like a file manager, a click selects and a double-click opens, unless set
+    // to open with a single click. Ctrl+click and middle-click open a new tab
+    // either way. Opening goes through open(), so files opened by mouse get the
+    // header bar. Shift+click (new window) is left to the browser.
+    const clickedRow = (e) => {
       const row = e.target.closest('.fn-row');
-      if (!row || e.shiftKey || e.altKey) return;
+      if (!row || e.shiftKey || e.altKey) return null;
       e.preventDefault();
-      open(visible[Number(row.dataset.index)], newTab);
+      return Number(row.dataset.index);
     };
-    rows.addEventListener('click', (e) => onRowClick(e, e.ctrlKey || e.metaKey));
-    rows.addEventListener('auxclick', (e) => e.button === 1 && onRowClick(e, true));
+    rows.addEventListener('click', (e) => {
+      const i = clickedRow(e);
+      if (i === null) return;
+      if (e.ctrlKey || e.metaKey) open(visible[i], true);
+      else if (settings.openWith === 'single') open(visible[i]);
+      else select(i, false);
+    });
+    rows.addEventListener('dblclick', (e) => {
+      const i = clickedRow(e);
+      if (i !== null && settings.openWith !== 'single' && !e.ctrlKey && !e.metaKey) open(visible[i]);
+    });
+    rows.addEventListener('auxclick', (e) => {
+      const i = e.button === 1 ? clickedRow(e) : null;
+      if (i !== null) open(visible[i], true);
+    });
     rows.setAttribute('aria-label', 'Files');
     const empty = el('div', { className: 'fn-empty', textContent: 'No matching files', hidden: true });
     const count = el('span', { className: 'fn-count' });

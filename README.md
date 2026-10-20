@@ -18,8 +18,9 @@ Works in Chrome and other Chromium-based browsers.
   folder one after the other. + / − / 0 / 1 zoom images in, out, fit and
   show at actual size.
 - **Folder view.** Replaces Chrome's plain directory listing: folders first,
-  file-type icons, a clickable path, a filter box, sortable columns and
-  keyboard navigation (↑ ↓, Enter, ← / Backspace for the parent folder, typing
+  file-type icons, a clickable path, a filter box, sortable columns, a click
+  to select and a double-click to open (or a single click, in the settings),
+  and keyboard navigation (↑ ↓, Enter, ← / Backspace for the parent folder, typing
   to jump, `/` to filter). A thumbnail grid for folders of photos and videos,
   with arrow keys in two dimensions; the List / Grid choice is remembered per
   folder.

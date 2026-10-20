@@ -106,6 +106,44 @@ export default {
     assert.equal(await selectedInFolder(page), 'test-files');
   },
 
+  'a click selects, a double-click opens': async (ctx) => {
+    await setSettings(ctx, {});
+    const page = await newPage(ctx);
+    await openFolder(page);
+    await page.click('#fn-explorer .fn-row[title="notes.txt"]');
+    await sleep(300);
+    assert.equal(await selectedInFolder(page), 'notes.txt');
+    assert.equal(shown(page.url()), '(folder)');
+    await page.click('#fn-explorer .fn-row[title="notes.txt"]', { count: 2 });
+    await until(() => shown(page.url()) === 'notes.txt', { message: 'notes.txt opened' });
+  },
+
+  'the single-click setting opens on a click': async (ctx) => {
+    await setSettings(ctx, { openWith: 'single' });
+    const page = await newPage(ctx);
+    await openFolder(page);
+    await page.click('#fn-explorer .fn-row[title="notes.txt"]');
+    await until(() => shown(page.url()) === 'notes.txt', { message: 'notes.txt opened' });
+  },
+
+  'Ctrl+click and middle-click open a new tab in both modes': async (ctx) => {
+    for (const openWith of ['double', 'single']) {
+      await setSettings(ctx, { openWith });
+      const page = await newPage(ctx);
+      await openFolder(page);
+      for (const click of [
+        () => page.keyboard.down('Control').then(() => page.click('#fn-explorer .fn-row[title="notes.txt"]')).then(() => page.keyboard.up('Control')),
+        () => page.click('#fn-explorer .fn-row[title="notes.txt"]', { button: 'middle' }),
+      ]) {
+        const before = (await ctx.browser.pages()).length;
+        await click();
+        await until(async () => (await ctx.browser.pages()).length === before + 1, { message: `new tab (${openWith})` });
+        assert.equal(shown(page.url()), '(folder)');
+      }
+      await page.close();
+    }
+  },
+
   "Chrome's listing never shows, not even for a frame": async (ctx) => {
     await setSettings(ctx, {});
     const page = await newPage(ctx);

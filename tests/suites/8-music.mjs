@@ -28,7 +28,7 @@ async function skipToEnd(page) {
 async function openPlayer(ctx, page, file = '01 - Morning Light.mp3') {
   await page.goto(MUSIC);
   await page.waitForSelector('#fn-explorer .fn-row');
-  await page.evaluate((file) => [...document.querySelectorAll('#fn-explorer .fn-row')].find((r) => r.title === file).click(), file);
+  await page.click(`#fn-explorer .fn-row[title="${file}"]`, { count: 2 });
   await waitForShown(page, 'player:music/' + file);
   await page.waitForFunction(() => document.querySelectorAll('#tracks li').length > 0);
 }

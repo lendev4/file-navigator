@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "File Navigator",
-  "version": "0.16.0",
+  "version": "0.17.0",
   "description": "Use the arrow keys to step through the files of a folder when viewing local files in Chrome.",
   "permissions": ["offscreen", "storage", "tabs"],
   "host_permissions": ["file:///*"],

@@ -110,6 +110,7 @@ const DEFAULT_SETTINGS = {
   wrap: false,
   label: 'brief', // off | brief | always
   folderView: true,
+  openWith: 'double', // double (a click selects) | single
   startFolder: '', // empty: the last folder browsed
   folderLayout: 'auto', // auto | list | grid
   fileBar: 'explorer', // explorer | always | never

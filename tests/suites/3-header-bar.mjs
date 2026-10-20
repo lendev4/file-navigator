@@ -46,12 +46,12 @@ export default {
     assert.equal(await barVisible(page), false);
   },
 
-  'shown for files opened by mouse click': async (ctx) => {
+  'shown for files opened by double-click': async (ctx) => {
     await setSettings(ctx, {});
     const page = await newPage(ctx);
     await openFolder(page);
     await page.evaluate(() => [...document.querySelectorAll('#fn-explorer .fn-row')].find((r) => r.title === 'notes.txt').scrollIntoView());
-    await page.click('#fn-explorer .fn-row[title="notes.txt"]');
+    await page.click('#fn-explorer .fn-row[title="notes.txt"]', { count: 2 });
     await waitForShown(page, 'notes.txt');
     assert.equal(await barVisible(page), true);
   },
