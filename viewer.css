@@ -1,5 +1,5 @@
-/* Text viewer. The source view matches Chrome's own text view; rendered
-   Markdown gets GitHub-like typography. */
+/* The extension's viewer. The source view matches Chrome's own text view;
+   rendered Markdown gets GitHub-like typography, CSV a compact table. */
 
 :root {
   color-scheme: light dark;
@@ -39,11 +39,12 @@
 /* Positioned in the body, so it moves down with the page under the header bar. */
 body { position: relative; }
 html.fn-rendered body { background: var(--md-bg); }
-/* Markdown pages have no body margin in either view, so the Rendered/Source
-   switch stays put when flipping. The source view gets the margin back as
-   padding, plus room above the text for the switch. */
-html.fn-markdown body { margin: 0; }
-html.fn-markdown:not(.fn-rendered) body { padding: 48px 8px 8px; }
+/* Pages with a view switch have no body margin in either view, so the switch
+   stays put when flipping. Views without their own spacing get the margin
+   back as padding, plus room at the top for the switch. */
+html.fn-markdown body, html.fn-csv body { margin: 0; }
+html.fn-markdown:not(.fn-rendered) body, html.fn-csv body { padding: 48px 8px 8px; }
+#fn-rendered[hidden] { display: none; }
 
 #fn-view-switch {
   position: absolute;
@@ -142,3 +143,50 @@ html.fn-markdown:not(.fn-rendered) body { padding: 48px 8px 8px; }
 @media (max-width: 600px) {
   .markdown { padding: 56px 16px 64px; }
 }
+
+/* CSV / TSV table */
+.csv { font: 13px/1.4 system-ui, sans-serif; color: var(--md-text); }
+.csv table { border-collapse: separate; border-spacing: 0; }
+.csv th, .csv td {
+  max-width: 40ch;
+  padding: 4px 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  border-right: 1px solid var(--md-border);
+  border-bottom: 1px solid var(--md-border);
+}
+.csv tr > :first-child { border-left: 1px solid var(--md-border); }
+.csv th {
+  /* Stays in view while scrolling; below the header bar when it's shown. */
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-top: 1px solid var(--md-border);
+  background: var(--md-subtle);
+  font-weight: 600;
+}
+html.fn-bar-push .csv th { top: 44px; }
+.csv tbody tr:nth-child(even) td { background: color-mix(in srgb, var(--md-subtle) 60%, transparent); }
+.csv tbody tr:hover td { background: var(--md-code); }
+.csv .num { text-align: right; font-variant-numeric: tabular-nums; }
+.csv .rownum {
+  color: var(--md-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+.csv-note { margin: 10px 2px; color: var(--md-muted); }
+
+/* Video, like Chrome's own video page */
+html.fn-video, html.fn-video body { height: 100%; }
+html.fn-video body {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+}
+html.fn-video video { max-width: 100%; max-height: 100%; }
+.video-error { max-width: 36em; padding: 0 24px; color: #ccc; font: 15px/1.5 system-ui, sans-serif; text-align: center; }

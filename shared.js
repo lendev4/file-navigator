@@ -5,10 +5,13 @@
 const VIEWER_EXTS = ['csv', 'tsv', 'yaml', 'yml', 'toml', 'sql', 'srt', 'php', 'pl', 'rb', 'fish', 'tsx', 'mts', 'cts'];
 // Markdown also opens in the text viewer, which renders it.
 const MARKDOWN_EXTS = ['md', 'markdown', 'mdown', 'mkd'];
+// Videos Chrome downloads although it can usually play them (QuickTime .mov is
+// mostly H.264). The viewer shows them in a video player.
+const VIEWER_VIDEO_EXTS = ['mov'];
 
 const CATEGORIES = {
   image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg', 'ico', 'jxl'],
-  video: ['mp4', 'webm', 'm4v', 'ogv', 'mkv'],
+  video: ['mp4', 'webm', 'm4v', 'ogv', 'mkv', ...VIEWER_VIDEO_EXTS],
   audio: ['mp3', 'wav', 'ogg', 'oga', 'flac', 'm4a', 'aac', 'opus'],
   pdf: ['pdf'],
   text: [
@@ -19,7 +22,7 @@ const CATEGORIES = {
   ],
   html: ['html', 'htm'],
 };
-// Left out on purpose: mov, tiff. Chrome downloads these, and they aren't text.
+// Left out on purpose: tiff. Chrome downloads it and can't show it.
 
 function extOf(name) {
   return name.includes('.') ? name.split('.').pop().toLowerCase() : '';
@@ -44,11 +47,12 @@ const VIEWER_PAGE = 'viewer.html';
 
 const isMarkdown = (name) => MARKDOWN_EXTS.includes(extOf(name));
 
-// The URL to show a file at: the file itself, or the text viewer for Markdown
-// and for formats Chrome would download.
+// The URL to show a file at: the file itself, or the viewer for Markdown and
+// for formats Chrome would download.
 function openUrl(fileUrl) {
   const name = decodeURIComponent(new URL(fileUrl).pathname.split('/').pop());
-  if (!VIEWER_EXTS.includes(extOf(name)) && !isMarkdown(name)) return fileUrl;
+  const ext = extOf(name);
+  if (!VIEWER_EXTS.includes(ext) && !VIEWER_VIDEO_EXTS.includes(ext) && !isMarkdown(name)) return fileUrl;
   return `${chrome.runtime.getURL(VIEWER_PAGE)}?file=${encodeURIComponent(fileUrl)}`;
 }
 
@@ -80,6 +84,7 @@ const DEFAULT_SETTINGS = {
   folderView: true,
   fileBar: 'explorer', // explorer | always | never
   markdownView: 'rendered', // rendered | source
+  csvView: 'rendered', // rendered (a table) | source
 };
 
 async function getSettings() {

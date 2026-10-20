@@ -13,14 +13,14 @@
   <script src="viewer.js"></script>
   <script src="content.js"></script>
 </head>
-<!-- The <pre> comes first so it looks like Chrome's own text view, which
-     content.js treats the same way. -->
+<!-- For text, the <pre> comes first so the page looks like Chrome's own text
+     view, which content.js treats the same way. -->
 <body>
   <pre id="fn-text"></pre>
   <div id="fn-view-switch" hidden>
-    <button type="button" data-view="rendered">Rendered</button>
+    <button type="button" data-view="rendered"></button>
     <button type="button" data-view="source">Source</button>
   </div>
-  <article id="fn-markdown" class="markdown" hidden></article>
+  <div id="fn-rendered" hidden></div>
 </body>
 </html>

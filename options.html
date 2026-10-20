@@ -85,7 +85,7 @@
       </section>
 
       <section class="card">
-        <h2>Markdown</h2>
+        <h2>Markdown and CSV</h2>
         <div class="row">
           <label for="markdownView">Open Markdown files</label>
           <select id="markdownView" name="markdownView">
@@ -93,7 +93,14 @@
             <option value="source">As source text</option>
           </select>
         </div>
-        <p class="hint">A switch at the top right of each Markdown file flips between the two.</p>
+        <div class="row">
+          <label for="csvView">Open CSV and TSV files</label>
+          <select id="csvView" name="csvView">
+            <option value="rendered">As a table</option>
+            <option value="source">As source text</option>
+          </select>
+        </div>
+        <p class="hint">A switch at the top right of each file flips between the two.</p>
       </section>
     </form>
 
