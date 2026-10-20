@@ -1,0 +1,141 @@
+/* Text viewer. The source view matches Chrome's own text view; rendered
+   Markdown gets GitHub-like typography. */
+
+:root {
+  color-scheme: light dark;
+  --md-bg: #ffffff;
+  --md-text: #1f2328;
+  --md-muted: #59636e;
+  --md-border: #d1d9e0;
+  --md-subtle: #f6f8fa;
+  --md-code: rgba(129, 139, 152, .15);
+  --md-link: #0969da;
+  --md-switch: #f1f1ee;
+  --md-switch-on: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --md-bg: #161618;
+    --md-text: #e6e6e3;
+    --md-muted: #9a9a96;
+    --md-border: #34343a;
+    --md-subtle: #1e1e21;
+    --md-code: rgba(150, 150, 160, .18);
+    --md-link: #6f9df0;
+    --md-switch: #222225;
+    --md-switch-on: #34343a;
+  }
+}
+
+/* Extension pages default to a smaller font size than normal pages, so set
+   Chrome's 13px for the source view. */
+#fn-text {
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-size: 13px;
+}
+
+/* Positioned in the body, so it moves down with the page under the header bar. */
+body { position: relative; }
+html.fn-rendered body { margin: 0; background: var(--md-bg); }
+/* Markdown source: room above the text for the Rendered/Source switch. */
+html.fn-markdown:not(.fn-rendered) body { padding-top: 40px; }
+
+#fn-view-switch {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--md-border);
+  border-radius: 8px;
+  background: var(--md-switch);
+  font: 12px system-ui, sans-serif;
+}
+#fn-view-switch[hidden] { display: none; }
+#fn-view-switch button {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--md-muted);
+  font: inherit;
+  cursor: pointer;
+}
+#fn-view-switch button[aria-pressed="true"] {
+  background: var(--md-switch-on);
+  color: var(--md-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
+}
+
+/* Rendered Markdown */
+.markdown {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 40px 32px 80px;
+  color: var(--md-text);
+  font: 16px/1.6 system-ui, sans-serif;
+  overflow-wrap: break-word;
+}
+.markdown[hidden] { display: none; }
+.markdown > :first-child { margin-top: 0; }
+
+.markdown h1, .markdown h2, .markdown h3, .markdown h4, .markdown h5, .markdown h6 {
+  margin: 1.5em 0 .6em;
+  font-weight: 650;
+  line-height: 1.25;
+  /* Clear of the header bar when jumping to a heading. */
+  scroll-margin-top: 60px;
+}
+.markdown h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--md-border); }
+.markdown h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--md-border); }
+.markdown h3 { font-size: 1.25em; }
+.markdown h4 { font-size: 1em; }
+.markdown h5 { font-size: .875em; }
+.markdown h6 { font-size: .85em; color: var(--md-muted); }
+
+.markdown p, .markdown ul, .markdown ol, .markdown blockquote, .markdown pre, .markdown table, .markdown details {
+  margin: 0 0 1em;
+}
+.markdown ul, .markdown ol { padding-left: 2em; }
+.markdown li + li { margin-top: .25em; }
+.markdown li > ul, .markdown li > ol { margin: .25em 0 0; }
+/* GFM task lists */
+.markdown li:has(> input[type="checkbox"]) { list-style: none; }
+.markdown li > input[type="checkbox"] { margin: 0 .4em 0 -1.4em; vertical-align: middle; }
+
+.markdown a { color: var(--md-link); text-decoration: none; }
+.markdown a:hover { text-decoration: underline; }
+
+.markdown code {
+  padding: .15em .4em;
+  border-radius: 6px;
+  background: var(--md-code);
+  font: .875em ui-monospace, monospace;
+}
+.markdown pre {
+  padding: 14px 16px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--md-subtle);
+  line-height: 1.45;
+}
+.markdown pre code { padding: 0; background: none; font-size: 13px; }
+
+.markdown blockquote {
+  padding: 0 1em;
+  border-left: .25em solid var(--md-border);
+  color: var(--md-muted);
+}
+
+.markdown table { display: block; width: max-content; max-width: 100%; overflow: auto; border-collapse: collapse; }
+.markdown th, .markdown td { padding: 6px 13px; border: 1px solid var(--md-border); }
+.markdown th { font-weight: 600; background: var(--md-subtle); }
+
+.markdown img { max-width: 100%; }
+.markdown hr { height: 1px; margin: 1.5em 0; border: 0; background: var(--md-border); }
+
+@media (max-width: 600px) {
+  .markdown { padding: 56px 16px 64px; }
+}

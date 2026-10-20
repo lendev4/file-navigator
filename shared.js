@@ -3,6 +3,8 @@
 // Text formats Chrome downloads instead of showing (it goes by the system's
 // file type for each extension). They open in the extension's text viewer.
 const VIEWER_EXTS = ['csv', 'tsv', 'yaml', 'yml', 'toml', 'sql', 'srt', 'php', 'pl', 'rb', 'fish', 'tsx', 'mts', 'cts'];
+// Markdown also opens in the text viewer, which renders it.
+const MARKDOWN_EXTS = ['md', 'markdown', 'mdown', 'mkd'];
 
 const CATEGORIES = {
   image: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp', 'svg', 'ico', 'jxl'],
@@ -10,7 +12,7 @@ const CATEGORIES = {
   audio: ['mp3', 'wav', 'ogg', 'oga', 'flac', 'm4a', 'aac', 'opus'],
   pdf: ['pdf'],
   text: [
-    'txt', 'md', 'log', 'json', 'xml', 'ini', 'conf', 'cfg', 'env', 'lock', 'properties', 'diff', 'patch',
+    'txt', ...MARKDOWN_EXTS, 'log', 'json', 'xml', 'ini', 'conf', 'cfg', 'env', 'lock', 'properties', 'diff', 'patch',
     'rst', 'tex', 'bib', 'vtt', 'org', 'adoc', 'c', 'h', 'cpp', 'hpp', 'css', 'scss', 'less', 'go', 'java',
     'kt', 'swift', 'js', 'mjs', 'jsx', 'ts', 'lua', 'nix', 'py', 'rs', 'sh', 'bash', 'zsh', 'gradle', 'svelte', 'vue',
     ...VIEWER_EXTS,
@@ -40,11 +42,13 @@ function kindOf(name) {
 
 const VIEWER_PAGE = 'viewer.html';
 
-// The URL to show a file at: the file itself, or the text viewer for formats
-// Chrome would download.
+const isMarkdown = (name) => MARKDOWN_EXTS.includes(extOf(name));
+
+// The URL to show a file at: the file itself, or the text viewer for Markdown
+// and for formats Chrome would download.
 function openUrl(fileUrl) {
   const name = decodeURIComponent(new URL(fileUrl).pathname.split('/').pop());
-  if (!VIEWER_EXTS.includes(extOf(name))) return fileUrl;
+  if (!VIEWER_EXTS.includes(extOf(name)) && !isMarkdown(name)) return fileUrl;
   return `${chrome.runtime.getURL(VIEWER_PAGE)}?file=${encodeURIComponent(fileUrl)}`;
 }
 
@@ -75,6 +79,7 @@ const DEFAULT_SETTINGS = {
   label: 'brief', // off | brief | always
   folderView: true,
   fileBar: 'explorer', // explorer | always | never
+  markdownView: 'rendered', // rendered | source
 };
 
 async function getSettings() {

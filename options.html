@@ -83,6 +83,18 @@
         <label class="check"><input type="checkbox" name="folderView"> Show folders as a file explorer instead of Chrome's plain listing</label>
         <p class="hint">Folders first, file-type icons, a clickable path and a filter box. Uses the sort order and hidden-file setting above. Keys: <kbd>↑</kbd> <kbd>↓</kbd> select, <kbd>Enter</kbd> or <kbd>→</kbd> open, <kbd>Ctrl</kbd> <kbd>Enter</kbd> open in a new tab, <kbd>←</kbd> or <kbd>Backspace</kbd> parent folder, type letters to jump, <kbd>/</kbd> filter, <kbd>Esc</kbd> clear.</p>
       </section>
+
+      <section class="card">
+        <h2>Markdown</h2>
+        <div class="row">
+          <label for="markdownView">Open Markdown files</label>
+          <select id="markdownView" name="markdownView">
+            <option value="rendered">Rendered</option>
+            <option value="source">As source text</option>
+          </select>
+        </div>
+        <p class="hint">A switch at the top right of each Markdown file flips between the two.</p>
+      </section>
     </form>
 
     <section class="card">

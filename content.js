@@ -9,6 +9,13 @@
   const type = window.FN_CONTENT_TYPE || document.contentType || '';
   if (window.top !== window || new URL(fileUrl).pathname.endsWith('/')) return;
 
+  // Markdown opened straight from disk (address bar, bookmark, file manager)
+  // moves to the viewer, which renders it. Replacing keeps Back working.
+  if (!window.FN_FILE_URL && isMarkdown(decodeURIComponent(location.pathname.split('/').pop()))) {
+    location.replace(openUrl(location.href));
+    return;
+  }
+
   const XHTML = 'http://www.w3.org/1999/xhtml';
   const BAR_HEIGHT = 44;
   const parts = new URL(fileUrl).pathname.split('/');

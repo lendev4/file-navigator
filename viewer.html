@@ -5,12 +5,22 @@
   <meta name="color-scheme" content="light dark">
   <title>File Navigator</title>
   <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="viewer.css">
+  <script src="vendor/marked.umd.js"></script>
+  <script src="vendor/purify.min.js"></script>
   <!-- Order matters: viewer.js tells content.js which file this page shows. -->
-  <script src="viewer.js"></script>
   <script src="shared.js"></script>
+  <script src="viewer.js"></script>
   <script src="content.js"></script>
 </head>
-<!-- Looks like Chrome's own text view, so content.js treats it the same. -->
-<!-- Extension pages default to a smaller font size than normal pages, so set Chrome's 13px. -->
-<body><pre id="text" style="word-wrap: break-word; white-space: pre-wrap; font-size: 13px;"></pre></body>
+<!-- The <pre> comes first so it looks like Chrome's own text view, which
+     content.js treats the same way. -->
+<body>
+  <pre id="fn-text"></pre>
+  <div id="fn-view-switch" hidden>
+    <button type="button" data-view="rendered">Rendered</button>
+    <button type="button" data-view="source">Source</button>
+  </div>
+  <article id="fn-markdown" class="markdown" hidden></article>
+</body>
 </html>
