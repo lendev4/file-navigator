@@ -82,6 +82,7 @@ const DEFAULT_SETTINGS = {
   wrap: false,
   label: 'brief', // off | brief | always
   folderView: true,
+  folderLayout: 'auto', // auto | list | grid
   fileBar: 'explorer', // explorer | always | never
   markdownView: 'rendered', // rendered | source
   csvView: 'rendered', // rendered (a table) | source

@@ -18,7 +18,9 @@ Works in Chrome and other Chromium-based browsers.
 - **Folder view.** Replaces Chrome's plain directory listing: folders first,
   file-type icons, a clickable path, a filter box, sortable columns and
   keyboard navigation (↑ ↓, Enter, ← / Backspace for the parent folder, typing
-  to jump, `/` to filter).
+  to jump, `/` to filter). A thumbnail grid for folders of photos and videos,
+  with arrow keys in two dimensions; the List / Grid choice is remembered per
+  folder.
 - **Header bar on files.** The folder name with a way back (Backspace), the
   file name, image size and ‹ 3 / 12 › buttons. Shown for files opened from
   the folder view, always or never.

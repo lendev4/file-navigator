@@ -249,6 +249,101 @@ html.fn-explorer body {
   text-align: center;
 }
 #fn-explorer .fn-key-extra { margin-left: 6px; }
+#fn-explorer .fn-count { flex: none; white-space: nowrap; }
+#fn-explorer .fn-keys { text-align: end; }
+
+/* List / Grid switch */
+#fn-explorer .fn-layout {
+  flex: none;
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--fn-border);
+  border-radius: 8px;
+  background: var(--fn-bg);
+}
+#fn-explorer .fn-layout button {
+  width: 30px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--fn-muted);
+  cursor: pointer;
+  position: relative;
+}
+#fn-explorer .fn-layout button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  -webkit-mask: center / 15px no-repeat;
+}
+#fn-explorer .fn-layout-list::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M4 6h16M4 12h16M4 18h16'/%3E%3C/svg%3E") !important;
+}
+#fn-explorer .fn-layout-grid::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='3' y='3' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.5' y='3' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='3' y='13.5' width='7.5' height='7.5' rx='1.5'/%3E%3Crect x='13.5' y='13.5' width='7.5' height='7.5' rx='1.5'/%3E%3C/svg%3E") !important;
+}
+#fn-explorer .fn-layout button:hover { color: var(--fn-text); }
+#fn-explorer .fn-layout button[aria-pressed="true"] {
+  background: var(--fn-surface);
+  color: var(--fn-text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .12);
+}
+
+/* Grid: tiles with a thumbnail, the name and the size. */
+#fn-explorer .fn-rows.fn-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  padding-top: 6px;
+}
+#fn-explorer .fn-grid .fn-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  height: auto;
+  padding: 8px;
+  border-radius: 8px;
+}
+#fn-explorer .fn-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--fn-hover);
+}
+#fn-explorer .fn-thumb img,
+#fn-explorer .fn-thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+#fn-explorer .fn-thumb .fn-icon { width: 38%; height: 38%; }
+#fn-explorer .fn-grid .fn-name { gap: 6px; align-items: flex-start; }
+#fn-explorer .fn-grid .fn-name .fn-icon { width: 14px; height: 14px; margin-top: 1px; }
+#fn-explorer .fn-grid .fn-label {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 12.5px;
+  line-height: 1.3;
+}
+#fn-explorer .fn-grid .fn-size { text-align: start; font-size: 11.5px; margin-top: -4px; padding-left: 20px; }
+#fn-explorer .fn-grid .fn-date { display: none; }
+
+/* In the grid, the column headers become sort buttons in a row. */
+#fn-explorer.fn-layout-grid .fn-head {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-start;
+}
+#fn-explorer.fn-layout-grid .fn-col { justify-content: flex-start; }
 
 @media (max-width: 640px) {
   #fn-explorer .fn-head,
@@ -256,5 +351,6 @@ html.fn-explorer body {
   #fn-explorer .fn-date,
   #fn-explorer .fn-col-mtime { display: none; }
   #fn-explorer .fn-filter { width: 120px; }
+  #fn-explorer .fn-rows.fn-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
   #fn-explorer .fn-key-extra { display: none; }
 }

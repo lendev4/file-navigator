@@ -1,7 +1,7 @@
-// Opt-in folder view: replaces Chrome's file:// directory listing with a
-// file-explorer style list that can be driven from the keyboard. Built from
-// the rows Chrome already put on the page, so its sizes, dates and column
-// names stay in the browser's language.
+// Folder view: replaces Chrome's file:// directory listing with a
+// file-explorer style list or thumbnail grid that can be driven from the
+// keyboard. Built from the rows Chrome already put on the page, so its sizes,
+// dates and column names stay in the browser's language.
 
 (() => {
   if (!location.pathname.endsWith('/')) return;
@@ -22,6 +22,11 @@
   let typed = '';
   let typedTimer;
   let ui; // elements of the view, set by build()
+  let layout = 'list'; // or 'grid'
+  // The layout picked for this folder with the List/Grid switch, if any.
+  // Remembered per folder in local storage.
+  let chosenLayout;
+  const LAYOUTS = 'folderLayouts';
 
   const enabled = () => document.documentElement.classList.contains('fn-explorer');
 
@@ -35,9 +40,35 @@
     // Set as early as possible: the CSS hides Chrome's listing under this class.
     document.documentElement.classList.toggle('fn-explorer', settings.folderView);
     if (!settings.folderView) return;
+    chosenLayout = (await chrome.storage.local.get(LAYOUTS))[LAYOUTS]?.[location.pathname];
     if (!built) return whenReady(build);
     sort = { key: settings.sortBy, dir: settings.sortDir };
+    layout = defaultLayout();
     render();
+  }
+
+  // Grid when picked for this folder, or by the setting; "auto" means a grid
+  // when most (more than half) of the files are images or videos.
+  function defaultLayout() {
+    if (chosenLayout) return chosenLayout;
+    if (settings.folderLayout !== 'auto') return settings.folderLayout;
+    const files = entries.filter((e) => !e.isDir && !e.name.startsWith('.'));
+    const media = files.filter((e) => e.kind === 'image' || e.kind === 'video');
+    return media.length * 2 > files.length ? 'grid' : 'list';
+  }
+
+  async function chooseLayout(name) {
+    chosenLayout = name;
+    const saved = (await chrome.storage.local.get(LAYOUTS))[LAYOUTS] || {};
+    delete saved[location.pathname];
+    saved[location.pathname] = name;
+    // Keep the 500 most recently chosen folders.
+    const keys = Object.keys(saved);
+    for (const key of keys.slice(0, Math.max(0, keys.length - 500))) delete saved[key];
+    await chrome.storage.local.set({ [LAYOUTS]: saved });
+    layout = name;
+    render();
+    select(selected);
   }
 
   function readEntries() {
@@ -80,6 +111,14 @@
     up.setAttribute('aria-label', upLabel);
     up.addEventListener('click', goUp);
 
+    const layoutSwitch = el('div', { className: 'fn-layout' }, ['list', 'grid'].map((name) => {
+      const label = name === 'list' ? 'List' : 'Grid';
+      const button = el('button', { className: `fn-layout-${name}`, title: label });
+      button.setAttribute('aria-label', label);
+      button.addEventListener('click', () => chooseLayout(name));
+      return button;
+    }));
+
     const filter = el('input', { className: 'fn-filter', type: 'search', placeholder: 'Filter', spellcheck: false });
     filter.setAttribute('aria-label', 'Filter files');
     filter.addEventListener('input', () => {
@@ -118,21 +157,30 @@
     const empty = el('div', { className: 'fn-empty', textContent: 'No matching files', hidden: true });
     const count = el('span', { className: 'fn-count' });
     const keys = el('span', { className: 'fn-keys' });
-    keys.innerHTML =
-      '<kbd>↑</kbd><kbd>↓</kbd> select <kbd>Enter</kbd> open <kbd>←</kbd> up ' +
-      '<span class="fn-key-extra">type to jump <kbd>/</kbd> filter <kbd>Esc</kbd> clear</span>';
 
     const app = el('div', { id: 'fn-explorer' }, [
-      el('header', { className: 'fn-bar' }, [up, crumbs(), filter]),
+      el('header', { className: 'fn-bar' }, [up, crumbs(), filter, layoutSwitch]),
       el('div', { className: 'fn-list' }, [el('div', { className: 'fn-head' }, Object.values(heads)), rows, empty]),
       el('footer', { className: 'fn-foot' }, [count, keys]),
     ]);
-    ui = { app, filter, heads, rows, empty, count, list: app.querySelector('.fn-list') };
+    ui = { app, filter, heads, rows, empty, count, keys, layoutSwitch, list: app.querySelector('.fn-list') };
+    // Thumbnails load as they scroll into view, so big folders stay fast.
+    ui.thumbs = new IntersectionObserver(
+      (seen) => {
+        for (const { isIntersecting, target } of seen) {
+          if (!isIntersecting) continue;
+          target.src = target.dataset.src;
+          ui.thumbs.unobserve(target);
+        }
+      },
+      { root: ui.list, rootMargin: '300px' }
+    );
     document.body.append(app);
     // On narrow windows, keep the current folder in view rather than the root.
     const nav = app.querySelector('.fn-crumbs');
     new ResizeObserver(() => (nav.scrollLeft = nav.scrollWidth)).observe(nav);
 
+    layout = defaultLayout();
     render();
     // Coming up from a subfolder, its name is in the hash: select it.
     const from = decodeURIComponent(location.hash.slice(1));
@@ -165,6 +213,27 @@
     return span;
   }
 
+  // A grid tile's picture: the image itself, a frame of the video, or a big icon.
+  function thumbnail(e) {
+    const box = el('span', { className: 'fn-thumb' });
+    const fallback = () => box.replaceChildren(icon(e.kind));
+    let media;
+    if (e.kind === 'image') media = el('img', { alt: '', decoding: 'async' });
+    else if (e.kind === 'video') media = el('video', { muted: true, preload: 'metadata' });
+    if (!media) return fallback(), box;
+    // A moment in, the first frame is often black.
+    media.dataset.src = e.kind === 'video' ? `${e.href}#t=0.5` : e.href;
+    media.addEventListener('error', fallback);
+    box.append(media);
+    ui.thumbs.observe(media);
+    return box;
+  }
+
+  const KEY_HINTS = {
+    list: '<kbd>↑</kbd><kbd>↓</kbd> select <kbd>Enter</kbd> open <kbd>←</kbd> up ',
+    grid: '<kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd> select <kbd>Enter</kbd> open <kbd>Backspace</kbd> up ',
+  };
+
   function render() {
     const keep = visible[selected]?.name;
     const query = ui.filter.value.trim().toLowerCase();
@@ -175,9 +244,17 @@
       // Folders first, like a file manager.
       .sort((a, b) => b.isDir - a.isDir || dir * COMPARE[sort.key](a, b) || COMPARE.name(a, b));
 
+    const grid = layout === 'grid';
+    ui.app.classList.toggle('fn-layout-grid', grid);
+    ui.rows.classList.toggle('fn-grid', grid);
+    for (const button of ui.layoutSwitch.children) button.setAttribute('aria-pressed', button.classList.contains(`fn-layout-${layout}`));
+    ui.keys.innerHTML = KEY_HINTS[layout] + '<span class="fn-key-extra">type to jump <kbd>/</kbd> filter <kbd>Esc</kbd> clear</span>';
+    ui.thumbs.disconnect();
+
     ui.rows.replaceChildren(
       ...visible.map((e, i) => {
         const row = el('a', { className: `fn-row fn-${e.kind}`, href: e.href, id: `fn-row-${i}`, tabIndex: -1 }, [
+          ...(grid ? [thumbnail(e)] : []),
           el('span', { className: 'fn-name' }, [icon(e.kind), el('span', { className: 'fn-label', textContent: e.name })]),
           el('span', { className: 'fn-size', textContent: e.isDir ? '' : e.sizeText }),
           el('span', { className: 'fn-date', textContent: e.dateText }),
@@ -227,10 +304,21 @@
     location.href = new URL('../', location.href).href + '#' + encodeURIComponent(current);
   }
 
-  // Rows that fit in the list, for PageUp/PageDown.
+  // Tiles per row in the grid: those level with the first one.
+  function columns() {
+    if (layout !== 'grid') return 1;
+    const tiles = [...ui.rows.children];
+    const top = tiles[0]?.offsetTop;
+    const n = tiles.findIndex((t) => t.offsetTop !== top);
+    return n === -1 ? tiles.length || 1 : n;
+  }
+
+  // Rows that fit in the list (or tiles in the grid), for PageUp/PageDown.
   function pageSize() {
     const row = ui.rows.firstElementChild;
-    return row ? Math.max(1, Math.floor(ui.list.clientHeight / row.offsetHeight) - 2) : 10;
+    if (!row) return 10;
+    const rows = Math.floor(ui.list.clientHeight / row.offsetHeight);
+    return layout === 'grid' ? Math.max(1, rows) * columns() : Math.max(1, rows - 2);
   }
 
   // Typing letters jumps to the next name starting with them; pressing the
@@ -259,8 +347,8 @@
     if (e.altKey || e.ctrlKey || e.metaKey) return;
 
     switch (e.key) {
-      case 'ArrowDown': select(selected + 1); break;
-      case 'ArrowUp': select(selected - 1); break;
+      case 'ArrowDown': select(selected + columns()); break;
+      case 'ArrowUp': select(selected - columns()); break;
       case 'PageDown': select(selected + pageSize()); break;
       case 'PageUp': select(selected - pageSize()); break;
       case 'Enter': open(visible[selected]); break;
@@ -276,8 +364,10 @@
         if (inFilter) return;
         if (e.key === 'Home') select(0);
         else if (e.key === 'End') select(visible.length - 1);
-        else if (e.key === 'ArrowRight') open(visible[selected]);
-        else if (e.key === 'ArrowLeft' || e.key === 'Backspace') goUp();
+        // In the grid, left and right move the selection.
+        else if (e.key === 'ArrowRight') layout === 'grid' ? select(selected + 1) : open(visible[selected]);
+        else if (e.key === 'ArrowLeft') layout === 'grid' ? select(selected - 1) : goUp();
+        else if (e.key === 'Backspace') goUp();
         else if (e.key === '/') ui.filter.focus();
         else if (e.key.length === 1 && e.key !== ' ') typeAhead(e.key);
         else return;
@@ -286,6 +376,7 @@
     e.preventDefault();
   }
 
-  chrome.storage.onChanged.addListener(apply);
+  // Only settings changes; the background's own bookkeeping is in other areas.
+  chrome.storage.onChanged.addListener((_changes, area) => area === 'sync' && apply());
   apply();
 })();

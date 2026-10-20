@@ -96,6 +96,15 @@
       <section class="card">
         <h2>Folder view</h2>
         <label class="check"><input type="checkbox" name="folderView"> Show folders as a file explorer instead of Chrome's plain listing</label>
+        <div class="row">
+          <label for="folderLayout">Show files as</label>
+          <select id="folderLayout" name="folderLayout">
+            <option value="auto">Grid when most files are images or videos</option>
+            <option value="list">List</option>
+            <option value="grid">Grid with thumbnails</option>
+          </select>
+        </div>
+        <p class="hint">The List / Grid switch at the top of a folder overrides this for that folder.</p>
         <p class="hint">Folders first, file-type icons, a clickable path and a filter box. Uses the sort order and hidden-file setting above. Keys: <kbd>↑</kbd> <kbd>↓</kbd> select, <kbd>Enter</kbd> or <kbd>→</kbd> open, <kbd>Ctrl</kbd> <kbd>Enter</kbd> open in a new tab, <kbd>←</kbd> or <kbd>Backspace</kbd> parent folder, type letters to jump, <kbd>/</kbd> filter, <kbd>Esc</kbd> clear.</p>
       </section>
 

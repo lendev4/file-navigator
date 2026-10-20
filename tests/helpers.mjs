@@ -49,11 +49,12 @@ export async function newPage(ctx, { width = 900, height = 600, scheme } = {}) {
   return page;
 }
 
-// Replaces all settings; omitted ones fall back to their defaults.
+// Replaces all settings; omitted ones fall back to their defaults. Also forgets
+// the layouts picked per folder.
 export async function setSettings(ctx, settings = {}) {
   const page = await ctx.browser.newPage();
   await page.goto(`chrome-extension://${ctx.id}/options.html`);
-  await page.evaluate((s) => chrome.storage.sync.clear().then(() => chrome.storage.sync.set(s)), settings);
+  await page.evaluate((s) => Promise.all([chrome.storage.local.clear(), chrome.storage.sync.clear().then(() => chrome.storage.sync.set(s))]), settings);
   await page.close();
 }
 
