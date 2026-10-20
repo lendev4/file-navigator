@@ -12,9 +12,11 @@ Works in Chrome and other Chromium-based browsers.
   kind (images, videos, audio, PDFs, text, HTML) in images and text files;
   Home / End jump to the first or last image. Alt+Shift+← / → work everywhere,
   including PDFs, videos and HTML files.
-- **Viewing images.** F for fullscreen (the window's, so it lasts while
-  stepping; the header bar shows near the top), Space for a slideshow, + / − /
-  0 / 1 to zoom in, out, fit and show at actual size.
+- **Viewing images and videos.** F for fullscreen (the window's, so it lasts
+  while stepping; the header bar shows near the top). S (or Space on images)
+  or the ▶ button runs a slideshow; on videos it plays all videos in the
+  folder one after the other. + / − / 0 / 1 zoom images in, out, fit and
+  show at actual size.
 - **Folder view.** Replaces Chrome's plain directory listing: folders first,
   file-type icons, a clickable path, a filter box, sortable columns and
   keyboard navigation (↑ ↓, Enter, ← / Backspace for the parent folder, typing

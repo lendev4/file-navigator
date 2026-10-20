@@ -125,10 +125,10 @@ export async function barVisible(page) {
   });
 }
 
-// Centres of the bar's ‹ and › buttons (see the bar layout in content.js).
+// Centres of the bar's slideshow, ‹ and › buttons (see the bar layout in content.js).
 export function barButton(page, which) {
   const { width } = page.viewport();
-  return which === 'next' ? [width - 8 - 15, 22] : [width - 103, 22];
+  return [{ next: width - 8 - 15, prev: width - 103, slide: width - 135 }[which], 22];
 }
 
 // A temporary folder with files copied from test-files, cleaned up by the caller.

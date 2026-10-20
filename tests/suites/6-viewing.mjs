@@ -1,7 +1,7 @@
 // Viewing images: fullscreen, slideshow and zoom.
 
 import assert from 'node:assert/strict';
-import { newPage, setSettings, tempFolder, waitForShown, inWorker, barVisible, until, sleep, shown } from '../helpers.mjs';
+import { newPage, setSettings, tempFolder, waitForShown, inWorker, barVisible, barButton, until, sleep, shown } from '../helpers.mjs';
 
 const photos = () => tempFolder({ 'photo1.png': '@photo1.png', 'photo2.png': '@photo2.png', 'photo3.png': '@photo3.png' });
 const windowState = (ctx) => inWorker(ctx, async () => (await chrome.windows.getAll()).find((w) => w.type === 'normal')?.state);
@@ -66,6 +66,50 @@ export default {
       await page.keyboard.press(' ');
       await sleep(1800);
       assert.equal(shown(page.url(), f.url), 'photo1.png');
+    } finally {
+      f.remove();
+    }
+  },
+
+  'the ▶ button in the bar starts a slideshow': async (ctx) => {
+    const f = photos();
+    try {
+      await setSettings(ctx, { slideshowSeconds: 1, fileBar: 'always' });
+      const page = await newPage(ctx);
+      await page.goto(f.url + 'photo1.png');
+      await waitForShown(page, 'photo1.png', f.url);
+      await page.mouse.click(...barButton(page, 'slide'));
+      await until(() => shown(page.url(), f.url) === 'photo2.png', { timeout: 4000, message: 'photo2' });
+    } finally {
+      f.remove();
+    }
+  },
+
+  'S on a video plays all videos, one after the other': async (ctx) => {
+    const f = tempFolder({ 'a.webm': '@clip1.webm', 'b.webm': '@clip2.webm' });
+    // Skips to just before the end instead of waiting for the whole video.
+    const nearEnd = (page) => page.waitForFunction(() => {
+      const v = document.querySelector('video');
+      if (!(v?.duration > 0)) return false;
+      if (v.currentTime < v.duration - 0.5) v.currentTime = v.duration - 0.3;
+      return true;
+    });
+    try {
+      await setSettings(ctx, {});
+      const page = await newPage(ctx);
+      await page.goto(f.url + 'a.webm');
+      await waitForShown(page, 'a.webm', f.url);
+      // Space stays play/pause in the video player.
+      await page.keyboard.press(' ');
+      await page.keyboard.press('s');
+      assert.equal(await page.$eval('video', (v) => v.paused), false, 'S plays a paused video');
+      await nearEnd(page);
+      await waitForShown(page, 'b.webm', f.url);
+      await nearEnd(page);
+      await page.waitForFunction(() => document.querySelector('video').ended);
+      await sleep(500);
+      assert.equal(shown(page.url(), f.url), 'b.webm');
+      assert.equal(await inWorker(ctx, async () => Object.values(await chrome.storage.session.get(null)).includes(true)), false);
     } finally {
       f.remove();
     }

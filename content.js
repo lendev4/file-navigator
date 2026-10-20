@@ -2,7 +2,8 @@
 // own viewer (viewer.html). Plain arrow keys navigate only on Chrome's
 // built-in image and text viewers, where they aren't otherwise used. Elsewhere
 // (video, PDF, HTML files) use the Alt+Shift+Left/Right commands instead.
-// Images also get F (fullscreen), Space (slideshow) and zoom keys.
+// Images also get F (fullscreen), Space or S (slideshow) and zoom keys; videos
+// get F and S (play all videos, one after the other).
 
 (() => {
   // In the text viewer these describe the file it shows (see viewer.js).
@@ -86,7 +87,8 @@
 
     // The action for a key press here, if any. Arrows and Backspace only on
     // Chrome's image and text viewers; Home/End, Space and zooming only on
-    // images (in text files they scroll); F also on videos.
+    // images (in text files they scroll, in videos Space plays and pauses);
+    // F and S also on videos.
     function keyAction(e) {
       const { key } = e;
       const plain = !e.shiftKey;
@@ -106,6 +108,7 @@
         if (key === '1') return () => setZoom(1);
       }
       if ((isImage || isVideo) && (key === 'f' || key === 'F')) return toggleFullscreen;
+      if ((isImage || isVideo) && (key === 's' || key === 'S')) return () => setSlideshow(!slideshow, true);
       if (key === 'Escape' && (slideshow || fullscreen)) {
         return () => {
           if (slideshow) setSlideshow(false, true);
@@ -168,6 +171,9 @@
         .i-back { -webkit-mask-image: ${mask("<path d='M19 12H5M11 18l-6-6 6-6'/>")}; }
         .i-prev { -webkit-mask-image: ${mask("<path d='M15 18l-6-6 6-6'/>")}; }
         .i-next { -webkit-mask-image: ${mask("<path d='M9 18l6-6-6-6'/>")}; }
+        .i-play { -webkit-mask-image: ${mask("<path d='M8 5.5v13l10.5-6.5z'/>")}; }
+        .slide.on .i-play { -webkit-mask-image: ${mask("<path d='M9 6v12M15 6v12'/>")}; }
+        .slide[hidden] { display: none; }
 
         .back { flex: none; max-width: 30%; color: var(--muted); }
         .back:hover { color: var(--text); }
@@ -199,6 +205,7 @@
         <span class="divider"></span>
         <span class="file"><span class="kind"></span><span class="title"></span><span class="meta"></span></span>
         <span class="nav">
+          <button class="step slide" hidden><span class="i i-play"></span></button>
           <button class="step prev" title="Previous file" aria-label="Previous file" disabled><span class="i i-prev"></span></button>
           <span class="count"></span>
           <button class="step next" title="Next file" aria-label="Next file" disabled><span class="i i-next"></span></button>
@@ -220,6 +227,9 @@
     $('.back').addEventListener('click', goToFolder);
     $('.prev').addEventListener('click', () => go({ step: -1 }));
     $('.next').addEventListener('click', () => go({ step: 1 }));
+    const slideButton = $('.slide');
+    slideButton.hidden = !(isImage || isVideo);
+    slideButton.addEventListener('click', () => setSlideshow(!slideshow, true));
     const kind = kindOf(fileName);
     $('.kind').classList.add(kind);
     $('.kind').style.webkitMaskImage = KIND_ICONS[kind];
@@ -309,15 +319,26 @@
     function setSlideshow(on, announce) {
       slideshow = on;
       chrome.runtime.sendMessage({ type: 'slideshow', on });
-      if (announce) flash(on ? `Slideshow · every ${Number(settings.slideshowSeconds)} s` : 'Slideshow off');
+      if (announce && !on) flash('Slideshow off');
+      else if (announce) flash(isVideo ? 'Playing all videos · the next one starts when this ends' : `Slideshow · every ${Number(settings.slideshowSeconds)} s`);
       scheduleSlide();
+      // Started on a paused video: play it, it's what "play all" means.
+      const video = isVideo && document.querySelector('video');
+      if (on && announce && video?.paused && !video.ended) video.play().catch(() => {});
     }
 
     // Images move on after the set time once loaded, videos when they end.
     function scheduleSlide() {
       clearTimeout(slideTimer);
+      slideButton.classList.toggle('on', slideshow);
+      const label = slideshow ? 'Stop slideshow (S)' : isVideo ? 'Play all videos (S)' : 'Slideshow (Space or S)';
+      slideButton.title = label;
+      slideButton.setAttribute('aria-label', label);
       const video = isVideo && document.querySelector('video');
-      if (video) video.onended = slideshow ? nextSlide : null;
+      if (video) {
+        video.onended = slideshow ? nextSlide : null;
+        if (slideshow && video.ended) nextSlide();
+      }
       if (!slideshow || !img) return;
       if (!img.complete) return img.addEventListener('load', scheduleSlide, { once: true });
       slideTimer = setTimeout(nextSlide, Number(settings.slideshowSeconds) * 1000);
