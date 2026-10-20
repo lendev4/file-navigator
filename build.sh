@@ -15,4 +15,4 @@ out="dist/file-navigator-$version.zip"
 mkdir -p dist
 git archive --format=zip -o "$out" HEAD
 echo "$out"
-unzip -l "$out" | tail -n +4 | head -n -2 | awk '{print "  " $4}'
+zipinfo -1 "$out" | grep -v '/$' | sed 's/^/  /'

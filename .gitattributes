@@ -4,8 +4,8 @@ test-files/ export-ignore
 store/ export-ignore
 build.sh export-ignore
 mise.toml export-ignore
-README.md export-ignore
-PRIVACY.md export-ignore
+/README.md export-ignore
+/PRIVACY.md export-ignore
 icons/icon.svg export-ignore
 .gitignore export-ignore
 .gitattributes export-ignore
