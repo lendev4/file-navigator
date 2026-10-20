@@ -38,9 +38,12 @@
 
 /* Positioned in the body, so it moves down with the page under the header bar. */
 body { position: relative; }
-html.fn-rendered body { margin: 0; background: var(--md-bg); }
-/* Markdown source: room above the text for the Rendered/Source switch. */
-html.fn-markdown:not(.fn-rendered) body { padding-top: 40px; }
+html.fn-rendered body { background: var(--md-bg); }
+/* Markdown pages have no body margin in either view, so the Rendered/Source
+   switch stays put when flipping. The source view gets the margin back as
+   padding, plus room above the text for the switch. */
+html.fn-markdown body { margin: 0; }
+html.fn-markdown:not(.fn-rendered) body { padding: 48px 8px 8px; }
 
 #fn-view-switch {
   position: absolute;
