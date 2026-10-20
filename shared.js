@@ -89,6 +89,7 @@ const DEFAULT_SETTINGS = {
   wrap: false,
   label: 'brief', // off | brief | always
   folderView: true,
+  startFolder: '', // empty: the last folder browsed
   folderLayout: 'auto', // auto | list | grid
   fileBar: 'explorer', // explorer | always | never
   markdownView: 'rendered', // rendered | source

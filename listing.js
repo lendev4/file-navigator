@@ -6,6 +6,9 @@
 (() => {
   if (!location.pathname.endsWith('/')) return;
 
+  // Where the toolbar icon opens the folder view next time.
+  chrome.storage.local.set({ lastFolder: location.href.split('#')[0] });
+
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   const COMPARE = {
     name: (a, b) => collator.compare(a.name, b.name),
@@ -119,6 +122,10 @@
       return button;
     }));
 
+    const settingsButton = el('button', { className: 'fn-settings', title: 'File Navigator settings' });
+    settingsButton.setAttribute('aria-label', 'Settings');
+    settingsButton.addEventListener('click', () => chrome.runtime.sendMessage({ type: 'open-options' }));
+
     const filter = el('input', { className: 'fn-filter', type: 'search', placeholder: 'Filter', spellcheck: false });
     filter.setAttribute('aria-label', 'Filter files');
     filter.addEventListener('input', () => {
@@ -159,7 +166,7 @@
     const keys = el('span', { className: 'fn-keys' });
 
     const app = el('div', { id: 'fn-explorer' }, [
-      el('header', { className: 'fn-bar' }, [up, crumbs(), filter, layoutSwitch]),
+      el('header', { className: 'fn-bar' }, [up, crumbs(), filter, layoutSwitch, settingsButton]),
       el('div', { className: 'fn-list' }, [el('div', { className: 'fn-head' }, Object.values(heads)), rows, empty]),
       el('footer', { className: 'fn-foot' }, [count, keys]),
     ]);

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "File Navigator",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Use the arrow keys to step through the files of a folder when viewing local files in Chrome.",
   "permissions": ["offscreen", "storage", "tabs"],
   "host_permissions": ["file:///*"],
@@ -12,7 +12,7 @@
     "128": "icons/icon128.png"
   },
   "action": {
-    "default_title": "File Navigator settings",
+    "default_title": "Open the folder view",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png"
@@ -43,6 +43,9 @@
     }
   ],
   "commands": {
+    "_execute_action": {
+      "suggested_key": { "default": "Alt+Shift+E" }
+    },
     "next-file": {
       "suggested_key": { "default": "Alt+Shift+Right" },
       "description": "Open the next file in the folder"

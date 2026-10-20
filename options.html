@@ -103,6 +103,11 @@
         <h2>Folder view</h2>
         <label class="check"><input type="checkbox" name="folderView"> Show folders as a file explorer instead of Chrome's plain listing</label>
         <div class="row">
+          <label for="startFolder">Start folder</label>
+          <input id="startFolder" name="startFolder" type="text" placeholder="Last folder you browsed" spellcheck="false">
+        </div>
+        <p class="hint">Where the toolbar icon and <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>E</kbd> open the folder view, e.g. <code>~/Music</code> or <code>/home/me/Photos</code>. Leave it empty for the last folder you browsed. Opens now: <code id="start-folder-now">…</code></p>
+        <div class="row">
           <label for="folderLayout">Show files as</label>
           <select id="folderLayout" name="folderLayout">
             <option value="auto">Grid when most files are images or videos</option>

@@ -20,14 +20,22 @@ form.addEventListener('change', async (e) => {
   savedTimer = setTimeout(() => saved.classList.remove('visible'), 1200);
 });
 
+async function showStartFolder() {
+  const url = await chrome.runtime.sendMessage({ type: 'start-folder' });
+  document.getElementById('start-folder-now').textContent = url ? decodeURIComponent(url.replace(/^file:\/\//, '')) : '?';
+}
+form.addEventListener('change', (e) => e.target.name === 'startFolder' && setTimeout(showStartFolder, 100));
+
 async function showStatus() {
   const allowed = await chrome.extension.isAllowedFileSchemeAccess();
   document.getElementById('status').hidden = allowed;
 }
 
 async function showCommands() {
-  // Chrome also lists its own _execute_action (clicking the toolbar icon).
-  const commands = (await chrome.commands.getAll()).filter((cmd) => !cmd.name.startsWith('_'));
+  // Chrome's own name for the toolbar icon's shortcut has no description.
+  const commands = (await chrome.commands.getAll()).map((cmd) =>
+    cmd.name === '_execute_action' ? { ...cmd, description: 'Open the folder view (like clicking the toolbar icon)' } : cmd
+  );
   const rows = commands.map((cmd) => {
     const tr = document.createElement('tr');
     const keys = document.createElement('td');
@@ -60,9 +68,11 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
     showStatus();
     showCommands();
+    showStartFolder();
   }
 });
 
 load();
 showStatus();
 showCommands();
+showStartFolder();

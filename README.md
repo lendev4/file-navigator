@@ -46,7 +46,10 @@ Works in Chrome and other Chromium-based browsers.
 3. Open the extension's **Details** and turn on **Allow access to file URLs**.
    Without it the extension can't do anything on local files.
 
-Click the toolbar icon for the settings. Shortcuts can be changed at
+Click the toolbar icon (or press Alt+Shift+E) to open the folder view: in the
+start folder from the settings, else the last folder you browsed, else your
+home folder. The settings are in the icon's right-click menu (Options) and
+behind the ⚙ button in the folder view. Shortcuts can be changed at
 `chrome://extensions/shortcuts`.
 
 ## Known limitations

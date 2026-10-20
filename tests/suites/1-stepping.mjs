@@ -77,7 +77,10 @@ export default {
     assert.equal(await page.$eval('[name="folderView"]', (e) => e.checked), true);
     await page.select('#sortBy', 'size');
     await page.waitForFunction(async () => (await chrome.storage.sync.get('sortBy')).sortBy === 'size');
-    assert.equal(await page.$$eval('#commands tr', (rows) => rows.length), 2);
+    // Previous / next file, and opening the folder view (the toolbar icon's shortcut).
+    const commands = await page.$$eval('#commands tr', (rows) => rows.map((r) => r.cells[1].textContent));
+    assert.equal(commands.length, 3);
+    assert.ok(commands.some((c) => c.startsWith('Open the folder view')));
     assert.deepEqual(page.errors, []);
   },
 };

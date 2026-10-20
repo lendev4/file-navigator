@@ -170,7 +170,58 @@ chrome.windows.onBoundsChanged.addListener((win) => tellFullscreen(win.id).catch
 
 chrome.tabs.onRemoved.addListener((tabId) => chrome.storage.session.remove([explorerKey(tabId), slideshowKey(tabId)]));
 
-chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
+// The folder the toolbar icon (and Alt+Shift+E) opens: the one in the
+// settings, else the last folder browsed, else the home folder if it can be
+// guessed, else the root. Extensions can't ask for the home folder, so it's
+// the only folder in /home (/Users, C:\Users) that isn't a shared one.
+async function startFolder() {
+  const { startFolder: setting } = await getSettings();
+  if (setting?.trim()) return folderUrl(setting.trim());
+  const { lastFolder } = await chrome.storage.local.get('lastFolder');
+  return lastFolder || (await guessHome()) || (await rootFolder());
+}
+
+async function rootFolder() {
+  return (await chrome.runtime.getPlatformInfo()).os === 'win' ? 'file:///C:/' : 'file:///';
+}
+
+async function guessHome() {
+  const { os } = await chrome.runtime.getPlatformInfo();
+  const base = { mac: 'file:///Users/', win: 'file:///C:/Users/' }[os] || 'file:///home/';
+  const shared = /^(shared|public|default|default user|all users|guest|lost\+found)$/i;
+  try {
+    const homes = (await listDir(base)).filter((e) => e.isDir && !e.name.startsWith('.') && !shared.test(e.name));
+    return homes.length === 1 ? `${base}${homes[0].href}/` : null;
+  } catch {
+    return null;
+  }
+}
+
+// A folder URL from what's typed in the settings: a path (/home/me, ~/Music,
+// C:\Users\me) or a file:// URL.
+async function folderUrl(input) {
+  let url = input;
+  if (input === '~' || input.startsWith('~/')) {
+    const home = (await guessHome()) || (await rootFolder());
+    url = home + input.slice(2);
+  } else if (!input.startsWith('file://')) {
+    const path = input.replace(/\\/g, '/');
+    const encoded = path.split('/').map((part) => (/^[a-z]:$/i.test(part) ? part : encodeURIComponent(part))).join('/');
+    url = 'file://' + (encoded.startsWith('/') ? '' : '/') + encoded;
+  }
+  return url.endsWith('/') ? url : url + '/';
+}
+
+// Clicking the toolbar icon, or its shortcut, opens the folder view in a new
+// tab. Without file access it can't show anything, so the settings page
+// (which explains that) opens instead. Settings are also in the icon's
+// right-click menu and behind the folder view's ⚙ button.
+async function openExplorer(tab) {
+  if (!(await chrome.extension.isAllowedFileSchemeAccess())) return chrome.runtime.openOptionsPage();
+  await chrome.tabs.create({ url: await startFolder(), index: tab ? tab.index + 1 : undefined, openerTabId: tab?.id });
+}
+
+chrome.action.onClicked.addListener((tab) => openExplorer(tab).catch(console.error));
 
 chrome.runtime.onInstalled.addListener(async ({ reason }) => {
   // Without file access the extension silently does nothing, so point it out.
@@ -191,6 +242,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     openFromExplorer(tab, msg.url, msg.newTab).catch(console.error);
   } else if (msg.type === 'playlist') {
     playlist(msg.url).then(sendResponse, (err) => sendResponse({ error: err.message }));
+    return true;
+  } else if (msg.type === 'open-options') {
+    chrome.runtime.openOptionsPage();
+  } else if (msg.type === 'start-folder') {
+    startFolder().then((url) => sendResponse(url));
     return true;
   } else if (msg.type === 'go') {
     show(tab.id, msg.url);
