@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <!-- Source for the PNG icons; re-render them after editing this file. -->
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="#2f6fdb"/>
+  <!-- Page with a folded corner -->
+  <path d="M46 26h26l18 18v58a6 6 0 0 1-6 6H46a6 6 0 0 1-6-6V32a6 6 0 0 1 6-6z" fill="#fff"/>
+  <path d="M72 26v14a4 4 0 0 0 4 4h14z" fill="#b9cff5"/>
+  <!-- Previous / next chevrons -->
+  <path d="M28 52 16 64l12 12" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M100 52l12 12-12 12" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

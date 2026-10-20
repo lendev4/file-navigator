@@ -1,0 +1,260 @@
+/* Folder view. Injected on every directory listing but only active under
+   html.fn-explorer, which listing.js sets when the option is on. */
+
+html.fn-explorer {
+  --fn-bg: #f7f7f5;
+  --fn-surface: #ffffff;
+  --fn-text: #1d1d1b;
+  --fn-muted: #6b6b66;
+  --fn-border: #e4e4e0;
+  --fn-hover: #f1f1ee;
+  --fn-accent: #2f6fdb;
+  --fn-selected: #dce7fb;
+  --fn-kbd: #f1f1ee;
+  --fn-dir: #e0a526;
+  --fn-image: #2e9d6a;
+  --fn-video: #d9534f;
+  --fn-audio: #8e5cd9;
+  --fn-pdf: #e0663a;
+  --fn-text-file: #5b7fa6;
+  --fn-html: #2f8fd8;
+  --fn-other: #8a8f98;
+}
+
+@media (prefers-color-scheme: dark) {
+  html.fn-explorer {
+    --fn-bg: #161618;
+    --fn-surface: #1e1e21;
+    --fn-text: #ececea;
+    --fn-muted: #9a9a96;
+    --fn-border: #333337;
+    --fn-hover: #27272b;
+    --fn-accent: #6f9df0;
+    --fn-selected: #24344f;
+    --fn-kbd: #2b2b30;
+    --fn-dir: #e8b84a;
+    --fn-image: #4cc08a;
+    --fn-video: #ec6f6a;
+    --fn-audio: #a982ec;
+    --fn-pdf: #f08358;
+    --fn-text-file: #86a6cb;
+    --fn-html: #5aa9ea;
+    --fn-other: #9da2ab;
+  }
+}
+
+/* Hide Chrome's listing; the view below replaces it. */
+html.fn-explorer body > :not(#fn-explorer) { display: none !important; }
+html:not(.fn-explorer) #fn-explorer { display: none; }
+
+html.fn-explorer body {
+  margin: 0;
+  background: var(--fn-bg);
+  color: var(--fn-text);
+  font: 14px/1.4 system-ui, sans-serif;
+}
+
+#fn-explorer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+#fn-explorer button,
+#fn-explorer input {
+  font: inherit;
+  color: inherit;
+}
+
+/* Top bar: up button, path, filter */
+#fn-explorer .fn-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: var(--fn-surface);
+  border-bottom: 1px solid var(--fn-border);
+}
+
+#fn-explorer .fn-up {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--fn-border);
+  border-radius: 8px;
+  background: var(--fn-bg);
+  cursor: pointer;
+  position: relative;
+}
+#fn-explorer .fn-up::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 19V5M5 12l7-7 7 7'/%3E%3C/svg%3E") center / 16px no-repeat;
+}
+#fn-explorer .fn-up:hover:not(:disabled) { border-color: var(--fn-muted); }
+#fn-explorer .fn-up:disabled { opacity: .35; cursor: default; }
+
+#fn-explorer .fn-crumbs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+#fn-explorer .fn-crumb {
+  padding: 4px 6px;
+  border-radius: 6px;
+  color: var(--fn-muted);
+  text-decoration: none;
+}
+#fn-explorer a.fn-crumb:hover { background: var(--fn-hover); color: var(--fn-text); }
+#fn-explorer .fn-current { color: var(--fn-text); font-weight: 600; }
+#fn-explorer .fn-crumb-sep { color: var(--fn-muted); opacity: .6; }
+
+#fn-explorer .fn-filter {
+  flex: none;
+  width: 220px;
+  padding: 6px 10px;
+  border: 1px solid var(--fn-border);
+  border-radius: 8px;
+  background: var(--fn-bg);
+  outline: none;
+}
+#fn-explorer .fn-filter:focus { border-color: var(--fn-accent); }
+
+/* File list */
+#fn-explorer .fn-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 8px 8px;
+  scroll-padding-top: 40px;
+}
+
+#fn-explorer .fn-head,
+#fn-explorer .fn-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem 12rem;
+  gap: 16px;
+  align-items: center;
+  padding: 0 12px;
+}
+
+#fn-explorer .fn-head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--fn-bg);
+  border-bottom: 1px solid var(--fn-border);
+  margin-bottom: 4px;
+}
+#fn-explorer .fn-col {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  color: var(--fn-muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: start;
+}
+#fn-explorer .fn-col:hover,
+#fn-explorer .fn-col.fn-sorted { color: var(--fn-text); }
+#fn-explorer .fn-col-size,
+#fn-explorer .fn-col-mtime { justify-content: flex-end; }
+#fn-explorer .fn-sort { font-size: 9px; }
+#fn-explorer .fn-sort:empty { display: none; }
+
+#fn-explorer .fn-row {
+  height: 34px;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+#fn-explorer .fn-row:hover { background: var(--fn-hover); }
+#fn-explorer .fn-row.fn-selected { background: var(--fn-selected); }
+
+#fn-explorer .fn-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+#fn-explorer .fn-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#fn-explorer .fn-dir .fn-label { font-weight: 550; }
+
+#fn-explorer .fn-size,
+#fn-explorer .fn-date {
+  color: var(--fn-muted);
+  text-align: end;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+
+/* Icons: the shape comes from KIND_ICONS (shared.js), the colour from the kind. */
+#fn-explorer .fn-icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: var(--fn-other);
+  -webkit-mask: center / contain no-repeat;
+}
+#fn-explorer .fn-dir .fn-icon { background: var(--fn-dir); }
+#fn-explorer .fn-image .fn-icon { background: var(--fn-image); }
+#fn-explorer .fn-video .fn-icon { background: var(--fn-video); }
+#fn-explorer .fn-audio .fn-icon { background: var(--fn-audio); }
+#fn-explorer .fn-pdf .fn-icon { background: var(--fn-pdf); }
+#fn-explorer .fn-text .fn-icon { background: var(--fn-text-file); }
+#fn-explorer .fn-html .fn-icon { background: var(--fn-html); }
+
+#fn-explorer .fn-empty {
+  padding: 32px;
+  text-align: center;
+  color: var(--fn-muted);
+}
+
+/* Footer: item count and key hints */
+#fn-explorer .fn-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--fn-border);
+  background: var(--fn-surface);
+  color: var(--fn-muted);
+  font-size: 12px;
+}
+#fn-explorer kbd {
+  display: inline-block;
+  min-width: 1.6em;
+  margin: 0 2px;
+  padding: 0 4px;
+  border: 1px solid var(--fn-border);
+  border-radius: 4px;
+  background: var(--fn-kbd);
+  font: 11px/1.6 ui-monospace, monospace;
+  text-align: center;
+}
+#fn-explorer .fn-key-extra { margin-left: 6px; }
+
+@media (max-width: 640px) {
+  #fn-explorer .fn-head,
+  #fn-explorer .fn-row { grid-template-columns: minmax(0, 1fr) 5.5rem; }
+  #fn-explorer .fn-date,
+  #fn-explorer .fn-col-mtime { display: none; }
+  #fn-explorer .fn-filter { width: 120px; }
+  #fn-explorer .fn-key-extra { display: none; }
+}

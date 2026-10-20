@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>File Navigator settings</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <h1><img src="icons/icon48.png" alt="" width="32" height="32"> File Navigator</h1>
+    <p class="lead">Step through the files of a folder when viewing local files in Chrome.</p>
+
+    <section id="status" class="card status" hidden>
+      <div class="status-text">
+        <strong>File access is off.</strong>
+        Turn on <em>Allow access to file URLs</em> on the extension's details page, otherwise nothing happens on local files.
+      </div>
+      <button type="button" id="open-details" class="button primary">Open details page</button>
+    </section>
+
+    <form id="form">
+      <section class="card">
+        <h2>Order</h2>
+        <div class="row">
+          <label for="sortBy">Sort by</label>
+          <select id="sortBy" name="sortBy">
+            <option value="name">Name</option>
+            <option value="mtime">Date modified</option>
+            <option value="size">Size</option>
+          </select>
+        </div>
+        <div class="row">
+          <label for="sortDir">Direction</label>
+          <select id="sortDir" name="sortDir">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+        <p class="hint">Names sort naturally, so <code>photo2</code> comes before <code>photo10</code>.</p>
+      </section>
+
+      <section class="card">
+        <h2>Which files</h2>
+        <div class="row">
+          <label for="grouping">Step through</label>
+          <select id="grouping" name="grouping">
+            <option value="kind">Files of the same kind</option>
+            <option value="extension">Files with the same extension</option>
+            <option value="all">All viewable files</option>
+          </select>
+        </div>
+        <p class="hint">Kinds are images, videos, audio, PDFs, text files and HTML files. "All viewable files" mixes them, but still skips files Chrome would download.</p>
+        <label class="check"><input type="checkbox" name="showHidden"> Include hidden files (names starting with a dot)</label>
+        <label class="check"><input type="checkbox" name="wrap"> Wrap around from the last file to the first</label>
+      </section>
+
+      <section class="card">
+        <h2>On screen</h2>
+        <div class="row">
+          <label for="label">Position label</label>
+          <select id="label" name="label">
+            <option value="off">Off</option>
+            <option value="brief">Briefly after moving</option>
+            <option value="always">Always</option>
+          </select>
+        </div>
+        <p class="hint">Shows e.g. "12 / 48 · photo.jpg" at the bottom of the page.</p>
+        <div class="row">
+          <label for="fileBar">Header bar on files</label>
+          <select id="fileBar" name="fileBar">
+            <option value="explorer">Only when opened from the folder view</option>
+            <option value="always">Always</option>
+            <option value="never">Never</option>
+          </select>
+        </div>
+        <p class="hint">Shows the file name, ‹ › buttons with its position in the folder, and a button back to the folder (or press <kbd>Backspace</kbd> in images and text files).</p>
+      </section>
+
+      <section class="card">
+        <h2>Folder view</h2>
+        <label class="check"><input type="checkbox" name="folderView"> Show folders as a file explorer instead of Chrome's plain listing</label>
+        <p class="hint">Folders first, file-type icons, a clickable path and a filter box. Uses the sort order and hidden-file setting above. Keys: <kbd>↑</kbd> <kbd>↓</kbd> select, <kbd>Enter</kbd> or <kbd>→</kbd> open, <kbd>Ctrl</kbd> <kbd>Enter</kbd> open in a new tab, <kbd>←</kbd> or <kbd>Backspace</kbd> parent folder, type letters to jump, <kbd>/</kbd> filter, <kbd>Esc</kbd> clear.</p>
+      </section>
+    </form>
+
+    <section class="card">
+      <h2>Keyboard</h2>
+      <table class="keys">
+        <tbody>
+          <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Previous / next file in images and text files</td></tr>
+          <tr><td><kbd>Home</kbd> <kbd>End</kbd></td><td>First / last file in images</td></tr>
+        </tbody>
+        <tbody id="commands"></tbody>
+      </table>
+      <p class="hint">The shortcuts work everywhere, including PDFs, videos and HTML files. Chrome only lets you change them on its own shortcuts page.</p>
+      <button type="button" id="open-shortcuts" class="button">Change shortcuts</button>
+    </section>
+  </main>
+
+  <div id="saved" class="saved" role="status" aria-live="polite">Saved</div>
+
+  <script src="shared.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

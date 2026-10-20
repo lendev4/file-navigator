@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "File Navigator",
+  "version": "0.8.0",
+  "description": "Use the arrow keys to step through the files of a folder when viewing local files in Chrome.",
+  "permissions": ["offscreen", "storage", "tabs"],
+  "host_permissions": ["file:///*"],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "File Navigator settings",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["file:///*"],
+      "exclude_matches": ["file:///*/", "file:///"],
+      "js": ["shared.js", "content.js"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["file:///*/", "file:///"],
+      "js": ["shared.js", "listing.js"],
+      "css": ["listing.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "commands": {
+    "next-file": {
+      "suggested_key": { "default": "Alt+Shift+Right" },
+      "description": "Open the next file in the folder"
+    },
+    "prev-file": {
+      "suggested_key": { "default": "Alt+Shift+Left" },
+      "description": "Open the previous file in the folder"
+    }
+  }
+}
