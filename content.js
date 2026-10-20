@@ -12,10 +12,15 @@
   if (window.top !== window || new URL(fileUrl).pathname.endsWith('/')) return;
 
   // Markdown opened straight from disk (address bar, bookmark, file manager)
-  // moves to the viewer, which renders it. Replacing keeps Back working.
-  if (!window.FN_FILE_URL && isMarkdown(decodeURIComponent(location.pathname.split('/').pop()))) {
+  // moves to the viewer, which renders it, and audio to the music player if
+  // it's on. Replacing keeps Back working.
+  const directName = decodeURIComponent(location.pathname.split('/').pop());
+  if (!window.FN_FILE_URL && isMarkdown(directName)) {
     location.replace(openUrl(location.href));
     return;
+  }
+  if (!window.FN_FILE_URL && categoryOf(directName) === 'audio') {
+    getSettings().then((s) => s.musicPlayer && location.replace(openUrl(location.href, s)));
   }
 
   const XHTML = 'http://www.w3.org/1999/xhtml';

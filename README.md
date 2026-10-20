@@ -26,6 +26,10 @@ Works in Chrome and other Chromium-based browsers.
 - **Header bar on files.** The folder name with a way back (Backspace), the
   file name, image size and ‹ 3 / 12 › buttons. Shown for files opened from
   the folder view, always or never.
+- **Music player** for audio files: plays the whole folder without gaps, with
+  shuffle, repeat (all or one track), a track list, cover art (from MP3 tags
+  or a `cover.jpg` in the folder), titles and artists from MP3 tags, and
+  media keys.
 - **Markdown** is rendered (GitHub-style, with syntax highlighting for code
   blocks that name a language), with a switch to the source.
 - **CSV and TSV** open as tables (delimiter detection, number columns,

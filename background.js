@@ -46,8 +46,9 @@ async function listDir(dirUrl) {
 }
 
 // Returns the sorted sibling files in the current file's group and its index.
-async function siblings(fileUrl) {
-  const settings = await getSettings();
+// `overrides` replace settings, e.g. to always group by kind.
+async function siblings(fileUrl, overrides = {}) {
+  const settings = { ...(await getSettings()), ...overrides };
   const { dirUrl, name } = splitUrl(fileUrl);
   const cat = categoryOf(name);
   const inGroup = {
@@ -65,9 +66,17 @@ async function siblings(fileUrl) {
   return { files, index: files.findIndex((f) => f.name === name), wrap: settings.wrap };
 }
 
-// Opens fileUrl in the tab, going through the text viewer where needed.
-function show(tabId, fileUrl) {
-  return chrome.tabs.update(tabId, { url: openUrl(fileUrl) });
+// Opens fileUrl in the tab, going through the viewer or music player where needed.
+async function show(tabId, fileUrl) {
+  return chrome.tabs.update(tabId, { url: openUrl(fileUrl, await getSettings()) });
+}
+
+// The music player's playlist: the folder's audio files, and its cover image.
+async function playlist(fileUrl) {
+  const { files, index } = await siblings(fileUrl, { grouping: 'kind' });
+  const { dirUrl } = splitUrl(fileUrl);
+  const cover = (await listDir(dirUrl)).find((e) => !e.isDir && COVER_NAMES.test(e.name));
+  return { files, index, cover: cover && dirUrl + cover.href };
 }
 
 // move is { step: 1 | -1 } or { to: 'first' | 'last' }. Returns { edge } when
@@ -89,6 +98,11 @@ async function navigate(tabId, fileUrl, move) {
 chrome.commands.onCommand.addListener(async (command, tab) => {
   tab = tab || (await chrome.tabs.query({ active: true, currentWindow: true }))[0];
   const step = command === 'next-file' ? 1 : -1;
+  // The music player switches tracks itself, without reloading.
+  if (tab.url?.startsWith(chrome.runtime.getURL(PLAYER_PAGE))) {
+    chrome.tabs.sendMessage(tab.id, { type: 'player-step', step }).catch(() => {});
+    return;
+  }
   const res = await navigate(tab.id, fileUrlOf(tab.url), { step }).catch(console.error);
   if (res?.edge) chrome.tabs.sendMessage(tab.id, { type: 'edge', step }).catch(() => {});
 });
@@ -175,6 +189,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   } else if (msg.type === 'open') {
     openFromExplorer(tab, msg.url, msg.newTab).catch(console.error);
+  } else if (msg.type === 'playlist') {
+    playlist(msg.url).then(sendResponse, (err) => sendResponse({ error: err.message }));
+    return true;
   } else if (msg.type === 'go') {
     show(tab.id, msg.url);
   } else if (msg.type === 'bar-state') {

@@ -60,12 +60,14 @@ export async function setSettings(ctx, settings = {}) {
 
 export const viewerUrl = (ctx, fileUrl) => `chrome-extension://${ctx.id}/viewer.html?file=${encodeURIComponent(fileUrl)}`;
 
-// What a tab shows, readably: "photo1.png", "viewer:table.csv", "(folder)".
+// What a tab shows, readably: "photo1.png", "viewer:table.csv",
+// "player:music/a.mp3", "(folder)".
 export function shown(url, base = TEST_FILES) {
   if (url.startsWith('chrome-extension://')) {
     const u = new URL(url);
     const file = u.searchParams.get('file');
-    return file ? 'viewer:' + decodeURIComponent(file.replace(base, '')) : u.pathname.slice(1);
+    const page = u.pathname.slice(1).replace(/\.html$/, '');
+    return file ? `${page}:` + decodeURIComponent(file.replace(base, '')) : u.pathname.slice(1);
   }
   const rel = decodeURIComponent(url.split('#')[0].replace(base, ''));
   return rel || '(folder)';

@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Music</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="player.css">
+  <script src="shared.js"></script>
+  <script src="player.js" defer></script>
+</head>
+<body>
+  <header class="bar">
+    <button id="back" class="back" title="Back to folder (Backspace)"><span class="i i-back"></span><span id="folder"></span></button>
+    <span class="divider"></span>
+    <span class="bar-file"><span id="bar-kind" class="kind"></span><span id="bar-name"></span></span>
+    <span id="bar-count" class="count"></span>
+  </header>
+
+  <main>
+    <section class="now">
+      <div id="cover" class="cover">
+        <img id="cover-img" alt="" hidden>
+        <span class="cover-note"></span>
+      </div>
+      <div class="info">
+        <h1 id="title"></h1>
+        <p id="artist" class="artist"></p>
+        <div class="seek">
+          <span id="time">0:00</span>
+          <input id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Position">
+          <span id="duration">0:00</span>
+        </div>
+        <div class="controls">
+          <button id="shuffle" class="toggle" title="Shuffle (S)" aria-label="Shuffle"><span class="i i-shuffle"></span></button>
+          <button id="prev" title="Previous (←)" aria-label="Previous"><span class="i i-prev"></span></button>
+          <button id="play" class="play" title="Play (Space)" aria-label="Play"><span class="i i-play"></span></button>
+          <button id="next" title="Next (→)" aria-label="Next"><span class="i i-next"></span></button>
+          <button id="repeat" class="toggle" title="Repeat (R)" aria-label="Repeat"><span class="i i-repeat"></span><span class="repeat-one">1</span></button>
+        </div>
+        <div class="volume">
+          <button id="mute" title="Mute (M)" aria-label="Mute"><span class="i i-volume"></span></button>
+          <input id="volume" type="range" min="0" max="100" value="100" aria-label="Volume">
+        </div>
+        <p id="message" class="message" hidden></p>
+      </div>
+    </section>
+
+    <ol id="tracks" class="tracks"></ol>
+    <p class="keys">
+      <kbd>Space</kbd> play / pause · <kbd>←</kbd><kbd>→</kbd> track · <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> seek ·
+      <kbd>↑</kbd><kbd>↓</kbd> volume · <kbd>S</kbd> shuffle · <kbd>R</kbd> repeat · <kbd>M</kbd> mute · <kbd>Backspace</kbd> folder
+    </p>
+  </main>
+</body>
+</html>

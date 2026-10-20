@@ -44,23 +44,30 @@ function kindOf(name) {
 }
 
 const VIEWER_PAGE = 'viewer.html';
+const PLAYER_PAGE = 'player.html';
 
 const isMarkdown = (name) => MARKDOWN_EXTS.includes(extOf(name));
 
-// The URL to show a file at: the file itself, or the viewer for Markdown and
-// for formats Chrome would download.
-function openUrl(fileUrl) {
+// The URL to show a file at: the file itself, the viewer for Markdown and for
+// formats Chrome would download, or the music player for audio (if it's on).
+function openUrl(fileUrl, settings = DEFAULT_SETTINGS) {
   const name = decodeURIComponent(new URL(fileUrl).pathname.split('/').pop());
   const ext = extOf(name);
-  if (!VIEWER_EXTS.includes(ext) && !VIEWER_VIDEO_EXTS.includes(ext) && !isMarkdown(name)) return fileUrl;
-  return `${chrome.runtime.getURL(VIEWER_PAGE)}?file=${encodeURIComponent(fileUrl)}`;
+  const page =
+    settings.musicPlayer && categoryOf(name) === 'audio' ? PLAYER_PAGE
+    : VIEWER_EXTS.includes(ext) || VIEWER_VIDEO_EXTS.includes(ext) || isMarkdown(name) ? VIEWER_PAGE
+    : null;
+  return page ? `${chrome.runtime.getURL(page)}?file=${encodeURIComponent(fileUrl)}` : fileUrl;
 }
 
-// The file a tab shows, also when that's the text viewer.
+// The file a tab shows, also when that's the viewer or the music player.
 function fileUrlOf(tabUrl) {
-  if (tabUrl?.startsWith(chrome.runtime.getURL(VIEWER_PAGE))) return new URL(tabUrl).searchParams.get('file');
-  return tabUrl;
+  const page = [VIEWER_PAGE, PLAYER_PAGE].find((p) => tabUrl?.startsWith(chrome.runtime.getURL(p)));
+  return page ? new URL(tabUrl).searchParams.get('file') : tabUrl;
 }
+
+// Images in a music folder used as its cover.
+const COVER_NAMES = /^(cover|folder|front|album|albumart)\.(jpe?g|png|webp)$/i;
 
 // File-type icons, used as CSS masks by the folder view and the header bar.
 const KIND_ICONS = {
@@ -87,6 +94,10 @@ const DEFAULT_SETTINGS = {
   markdownView: 'rendered', // rendered | source
   csvView: 'rendered', // rendered (a table) | source
   slideshowSeconds: 5,
+  musicPlayer: true,
+  // Changed in the music player itself.
+  playerShuffle: false,
+  playerRepeat: 'off', // off | all | one
 };
 
 async function getSettings() {
