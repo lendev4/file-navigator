@@ -1,7 +1,7 @@
 // The folder view's thumbnail grid.
 
 import assert from 'node:assert/strict';
-import { TEST_FILES, newPage, setSettings, openFolder, selectedInFolder, tempFolder, until, sleep, shown, pressAndSettle } from '../helpers.mjs';
+import { TEST_FILES, newPage, setSettings, openFolder, selectedInFolder, tempFolder, inWorker, until, sleep, shown, pressAndSettle } from '../helpers.mjs';
 
 const isGrid = (page) => page.$eval('#fn-explorer .fn-rows', (r) => r.classList.contains('fn-grid'));
 const photoFolder = (n = 12) => tempFolder(Object.fromEntries([...Array(n)].map((_, i) => [`photo${i + 1}.png`, `@photo${[1, 2, 3, 10, 11, 20][i % 6]}.png`])));
@@ -86,16 +86,19 @@ export default {
   'the List / Grid switch is remembered for that folder': async (ctx) => {
     await setSettings(ctx, {});
     const page = await newPage(ctx);
+    // Waits until the choice for a folder is stored.
+    const stored = (folder, layout) =>
+      until(() => inWorker(ctx, async (folder) => (await chrome.storage.local.get('folderLayouts')).folderLayouts?.[folder], new URL(folder).pathname).then((l) => l === layout), { message: `${layout} stored` });
     await openFolder(page, TEST_FILES);
     await page.click('#fn-explorer .fn-layout-grid');
     assert.equal(await isGrid(page), true);
-    await sleep(200);
+    await stored(TEST_FILES, 'grid');
     await openFolder(page, TEST_FILES);
     assert.equal(await isGrid(page), true);
     await openFolder(page, TEST_FILES + 'subfolder/');
     // subfolder/ has one image, so "auto" shows it as a grid anyway; choose list there.
     await page.click('#fn-explorer .fn-layout-list');
-    await sleep(200);
+    await stored(TEST_FILES + 'subfolder/', 'list');
     await openFolder(page, TEST_FILES);
     assert.equal(await isGrid(page), true);
     await openFolder(page, TEST_FILES + 'subfolder/');

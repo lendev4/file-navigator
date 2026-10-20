@@ -67,6 +67,9 @@
 
   async function chooseLayout(name) {
     chosenLayout = name;
+    layout = name;
+    render();
+    select(selected);
     const saved = (await chrome.storage.local.get(LAYOUTS))[LAYOUTS] || {};
     delete saved[location.pathname];
     saved[location.pathname] = name;
@@ -74,9 +77,6 @@
     const keys = Object.keys(saved);
     for (const key of keys.slice(0, Math.max(0, keys.length - 500))) delete saved[key];
     await chrome.storage.local.set({ [LAYOUTS]: saved });
-    layout = name;
-    render();
-    select(selected);
   }
 
   function readEntries() {
